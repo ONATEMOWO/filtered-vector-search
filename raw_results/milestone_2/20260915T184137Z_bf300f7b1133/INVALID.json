@@ -1,0 +1,1 @@
+{"error_message":"database version mismatch: {'postgresql_version': '17.11 (Postgres.app)', 'pgvector_version': '0.8.6'}","error_type":"AssertionError","failed_at":"2026-09-15T18:41:45.424582+00:00","last_phase":"database_load_and_index","run_id":"20260915T184137Z_bf300f7b1133","schema_version":1,"stage_id":"preflight-10k"}

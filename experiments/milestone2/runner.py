@@ -351,10 +351,11 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
         preparation = connect(application_name=f"m2-{config.stage['stage_id']}-prepare")
         open_connections.append(preparation)
         versions = verify_versions(preparation)
-        if versions != {
-            "postgresql_version": config.protocol["postgresql_version"],
-            "pgvector_version": config.protocol["pgvector_version"],
-        }:
+        if (
+            versions["postgresql_version"] != config.protocol["postgresql_version"]
+            or versions["postgresql_version_num"] != "170011"
+            or versions["pgvector_version"] != config.protocol["pgvector_version"]
+        ):
             raise AssertionError(f"database version mismatch: {versions}")
         write_json_exclusive(
             run_dir / "environment.json",

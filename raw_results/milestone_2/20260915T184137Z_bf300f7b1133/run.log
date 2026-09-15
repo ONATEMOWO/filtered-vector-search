@@ -1,0 +1,10 @@
+2026-09-15T18:41:37.776818+00:00 starting preflight-10k at scale=10000; expected timed executions=75
+2026-09-15T18:41:38.473272+00:00 validating SIFT1M artifact /Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/.runtime/datasets/sift-128-euclidean.hdf5
+2026-09-15T18:41:39.656192+00:00 constructing/reusing global one-million-ID SHA-256 scale order
+2026-09-15T18:41:45.209304+00:00 reading 10000 globally selected SIFT base vectors
+2026-09-15T18:41:45.421410+00:00 run invalid during database_load_and_index: AssertionError: database version mismatch: {'postgresql_version': '17.11 (Postgres.app)', 'pgvector_version': '0.8.6'}
+2026-09-15T18:41:45.422834+00:00 Traceback (most recent call last):
+  File "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/experiments/milestone2/runner.py", line 358, in run_stage
+    raise AssertionError(f"database version mismatch: {versions}")
+AssertionError: database version mismatch: {'postgresql_version': '17.11 (Postgres.app)', 'pgvector_version': '0.8.6'}
+

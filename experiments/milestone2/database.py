@@ -55,11 +55,16 @@ def execute_sql_file(connection: psycopg.Connection[Any], path: Path) -> None:
 def verify_versions(connection: psycopg.Connection[Any]) -> dict[str, str]:
     with connection.cursor() as cursor:
         cursor.execute(
-            "SELECT current_setting('server_version'), "
+            "SELECT current_setting('server_version'), current_setting('server_version_num'), "
             "(SELECT extversion FROM pg_extension WHERE extname = 'vector')"
         )
-        server, extension = cursor.fetchone()
-    return {"postgresql_version": str(server), "pgvector_version": str(extension)}
+        server, server_number, extension = cursor.fetchone()
+    return {
+        "postgresql_version": str(server).split()[0],
+        "postgresql_version_raw": str(server),
+        "postgresql_version_num": str(server_number),
+        "pgvector_version": str(extension),
+    }
 
 
 def vector_stream_checksum(connection: psycopg.Connection[Any], table: str) -> str:

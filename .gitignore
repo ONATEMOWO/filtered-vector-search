@@ -1,0 +1,8 @@
+.DS_Store
+.env
+.runtime/
+__pycache__/
+*.py[cod]
+data/generated/*
+!data/generated/.gitkeep
+

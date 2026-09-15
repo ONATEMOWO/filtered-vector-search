@@ -1,0 +1,26 @@
+{
+  "server_version": "17.11 (Postgres.app)",
+  "server_version_num": "170011",
+  "pgvector_version": "0.8.6",
+  "database": "filtered_vector_search",
+  "hnsw_ef_search_default": "40",
+  "hnsw_iterative_scan_default": "off",
+  "run_id": "2026-09-15T16:49:13.771418+00:00",
+  "dataset_label": "smoke-test synthetic data; not final research data",
+  "row_count": 20000,
+  "dimensions": 128,
+  "seed": 20260915,
+  "query_count": 5,
+  "k": 10,
+  "repetitions": 5,
+  "warmups_per_method_query_filter": 1,
+  "distance": "Euclidean/L2 (<->)",
+  "hnsw_index": {
+    "operator_class": "vector_l2_ops",
+    "m": 16,
+    "ef_construction": 64,
+    "ef_search": 40,
+    "iterative_scan": "off"
+  },
+  "latency_measurement": "PostgreSQL EXPLAIN ANALYZE top-level Execution Time, milliseconds"
+}

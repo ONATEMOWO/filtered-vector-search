@@ -1,0 +1,6 @@
+filter_threshold,condition,qualifying_count,match_rate
+50,filter_bucket < 50,10000,0.500000
+20,filter_bucket < 20,4000,0.200000
+10,filter_bucket < 10,2000,0.100000
+5,filter_bucket < 5,1000,0.050000
+1,filter_bucket < 1,200,0.010000

@@ -4,6 +4,7 @@ import unittest
 
 from experiments.milestone2.database import HNSW_INDEX, timed_execute_fetch
 from experiments.milestone2.plans import verify_plan_document
+from experiments.milestone2.runner import summarize_executions
 
 
 class FakeClock:
@@ -80,6 +81,26 @@ class TimingTests(unittest.TestCase):
                 (),
                 clock=FakeClock([20, 55], events),
             )
+
+    def test_summary_reduces_repetitions_per_query_first(self) -> None:
+        rows = []
+        for query_id, durations in ((1, (1, 101)), (2, (3, 5))):
+            for duration in durations:
+                rows.append(
+                    {
+                        "method": "exact",
+                        "filter_threshold": 50,
+                        "query_id": query_id,
+                        "duration_ns": duration,
+                        "error_type": None,
+                        "canonical_recall_at_10": 1.0,
+                        "tie_aware_recall_at_10": 1.0,
+                        "returned_k": True,
+                    }
+                )
+        summary = summarize_executions(rows)[0]
+        self.assertEqual(summary["query_samples"], 2)
+        self.assertEqual(summary["median_latency_ns"], 27)
 
 
 def hnsw_settings(mode: str) -> dict[str, str]:

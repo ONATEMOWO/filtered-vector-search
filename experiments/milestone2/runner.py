@@ -177,21 +177,48 @@ def summarize_executions(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         groups[(str(row["method"]), int(row["filter_threshold"]))].append(row)
     summaries: list[dict[str, Any]] = []
     for (method, threshold), group in sorted(groups.items()):
-        durations = [int(row["duration_ns"]) for row in group if row["error_type"] is None]
-        canonical = [float(row["canonical_recall_at_10"]) for row in group if row["error_type"] is None]
-        tie_aware = [float(row["tie_aware_recall_at_10"]) for row in group if row["error_type"] is None]
+        successful = [row for row in group if row["error_type"] is None]
+        per_query: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        for row in successful:
+            per_query[int(row["query_id"])].append(row)
+        query_median_durations = [
+            int(statistics.median(int(row["duration_ns"]) for row in query_rows))
+            for query_rows in per_query.values()
+        ]
+        query_mean_canonical = [
+            statistics.fmean(float(row["canonical_recall_at_10"]) for row in query_rows)
+            for query_rows in per_query.values()
+        ]
+        query_mean_tie_aware = [
+            statistics.fmean(float(row["tie_aware_recall_at_10"]) for row in query_rows)
+            for query_rows in per_query.values()
+        ]
         summaries.append(
             {
                 "method": method,
                 "filter_threshold": threshold,
-                "samples": len(group),
-                "successful_samples": len(durations),
-                "median_latency_ns": int(statistics.median(durations)) if durations else None,
-                "minimum_latency_ns": min(durations) if durations else None,
-                "maximum_latency_ns": max(durations) if durations else None,
-                "p95_latency_ns": int(np.percentile(durations, 95)) if durations else None,
-                "mean_canonical_recall_at_10": statistics.fmean(canonical) if canonical else None,
-                "mean_tie_aware_recall_at_10": statistics.fmean(tie_aware) if tie_aware else None,
+                "execution_samples": len(group),
+                "successful_executions": len(successful),
+                "query_samples": len(per_query),
+                "repetition_reduction": "median latency per query before condition summary",
+                "median_latency_ns": int(statistics.median(query_median_durations))
+                if query_median_durations
+                else None,
+                "minimum_query_median_latency_ns": min(query_median_durations)
+                if query_median_durations
+                else None,
+                "maximum_query_median_latency_ns": max(query_median_durations)
+                if query_median_durations
+                else None,
+                "p95_query_median_latency_ns": int(np.percentile(query_median_durations, 95))
+                if query_median_durations
+                else None,
+                "mean_canonical_recall_at_10": statistics.fmean(query_mean_canonical)
+                if query_mean_canonical
+                else None,
+                "mean_tie_aware_recall_at_10": statistics.fmean(query_mean_tie_aware)
+                if query_mean_tie_aware
+                else None,
                 "returned_k_rate": sum(bool(row["returned_k"]) for row in group) / len(group),
             }
         )
@@ -415,6 +442,34 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
             raise AssertionError("ground-truth record count is incomplete")
         write_jsonl_exclusive(run_dir / "ground_truth.jsonl", ground_truth_records)
         gt_index = ground_truth_index(ground_truth_records)
+
+        log.write("re-executing all 1,000 exact ground-truth combinations for determinism")
+        repeated_ground_truth, repeated_ground_truth_ns = generate_ground_truth(
+            preparation,
+            run_id=run_id,
+            scale_rows=config.scale_rows,
+            thresholds=config.filters,
+            qualifying_counts=integer_counts,
+            query_ids=query_manifest["measured_query_ids"][: config.ground_truth_query_count],
+            query_vectors=query_vectors,
+            k=config.k,
+            dataset_sha256=dataset_manifest["sha256"],
+            scale_manifest_sha256=scale_manifest_sha,
+        )
+        phase_metrics["ground_truth_determinism_reexecution_ns"] = repeated_ground_truth_ns
+        original_checksums = [record["record_sha256"] for record in ground_truth_records]
+        repeated_checksums = [record["record_sha256"] for record in repeated_ground_truth]
+        if original_checksums != repeated_checksums:
+            raise AssertionError("exact ground truth changed during deterministic re-execution")
+        write_json_exclusive(
+            run_dir / "ground_truth_reexecution.json",
+            {
+                "reexecuted_records": len(repeated_ground_truth),
+                "record_checksums_identical_in_order": True,
+                "duration_ns": repeated_ground_truth_ns,
+                "passed": True,
+            },
+        )
 
         validation_keys = select_validation_keys(
             query_manifest["measured_query_ids"][: config.ground_truth_query_count],
@@ -722,6 +777,7 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                 "table_equivalence": True,
                 "source_vector_sample_count": sample_validation["sample_count"],
                 "ground_truth_records": len(ground_truth_records),
+                "ground_truth_deterministic_reexecutions": len(repeated_ground_truth),
                 "independent_ground_truth_checks": independent_validation[
                     "validated_combination_count"
                 ],

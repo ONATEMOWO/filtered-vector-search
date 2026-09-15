@@ -37,6 +37,7 @@ def verify_run(run_dir: Path) -> dict[str, object]:
         "scale_manifest.json",
         "filter_counts.json",
         "ground_truth.jsonl",
+        "ground_truth_reexecution.json",
         "executions.jsonl",
         "warmups.jsonl",
         "plan_assertions.jsonl",
@@ -70,6 +71,15 @@ def verify_run(run_dir: Path) -> dict[str, object]:
     expected_ground_truth = int(stage["ground_truth_query_count"]) * len(filters)
     if len(ground_truth) != expected_ground_truth:
         raise AssertionError("ground-truth matrix is incomplete")
+    reexecution = json.loads(
+        (run_dir / "ground_truth_reexecution.json").read_text(encoding="utf-8")
+    )
+    if (
+        not reexecution.get("passed")
+        or not reexecution.get("record_checksums_identical_in_order")
+        or int(reexecution.get("reexecuted_records", 0)) != expected_ground_truth
+    ):
+        raise AssertionError("ground-truth deterministic re-execution is incomplete or failed")
 
     executions = read_jsonl(run_dir / "executions.jsonl")
     expected_execution_count = (

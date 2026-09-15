@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-find "$ROOT_DIR/raw_results" -type f ! -name '.gitkeep' -delete
-echo "removed generated files below raw_results/"
-
+echo "clean-results is disabled: raw_results contains versioned Milestone 1 evidence" >&2
+echo "and append-only Milestone 2 run artifacts. Remove an exact untracked run only" >&2
+echo "after reviewing its path and preservation requirements." >&2
+exit 2

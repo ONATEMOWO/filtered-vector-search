@@ -1,0 +1,16 @@
+{
+  "artifact": "ANN-Benchmarks SIFT1M HDF5",
+  "byte_size": 525128288,
+  "canonical_url": "https://ann-benchmarks.com/sift-128-euclidean.hdf5",
+  "expected_base_shape": [1000000, 128],
+  "expected_neighbor_shape": [10000, 100],
+  "expected_query_shape": [10000, 128],
+  "sha256": "dd6f0a6ed6b7ebb8934680f861a33ed01ff33991eaee4fd60914d854a0ca5984",
+  "validated_groups": {
+    "distances": {"dtype": "float32", "shape": [10000, 100]},
+    "neighbors": {"dtype": "int32", "shape": [10000, 100]},
+    "test": {"dtype": "float32", "shape": [10000, 128]},
+    "train": {"dtype": "float32", "shape": [1000000, 128]}
+  },
+  "values_normalized": false
+}

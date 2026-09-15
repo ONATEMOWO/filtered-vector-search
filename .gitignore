@@ -1,8 +1,12 @@
 .DS_Store
 .env
 .runtime/
+.venv-milestone2/
 __pycache__/
 *.py[cod]
 data/generated/*
 !data/generated/.gitkeep
-
+data/sift1m/*.hdf5
+data/sift1m/*.h5
+data/sift1m/*.part
+data/sift1m/local_manifest.json

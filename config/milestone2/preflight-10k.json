@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "protocol": "config/milestone2/protocol.json",
+  "protocol_id": "milestone-2-sift1m-v1",
+  "stage_id": "preflight-10k",
+  "purpose": "infrastructure validation only; not research evidence",
+  "full_benchmark_authorized": false,
+  "scale_rows": 10000,
+  "rounds": 1,
+  "rebuild_hnsw_each_round": true,
+  "ground_truth_query_count": 200,
+  "timed_query_count": 5,
+  "warmup_query_count": 20,
+  "repetitions": 1,
+  "independent_validation_count": 20,
+  "expected_filter_counts": {
+    "50": 5000,
+    "20": 2000,
+    "10": 1000,
+    "5": 500,
+    "1": 100
+  },
+  "expected_ground_truth_combinations": 1000,
+  "expected_timed_executions": 75,
+  "stop_after_stage": true
+}

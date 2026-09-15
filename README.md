@@ -6,10 +6,11 @@ This undergraduate research project asks:
 > latency of standard HNSW and iterative HNSW filtered vector search compared
 > with exact filtered search in PostgreSQL/pgvector?
 
-This repository currently implements **Milestone 1 only**: a verified smoke
-pipeline for exact filtered search versus standard, non-iterative HNSW filtered
-search. It intentionally does not test scale, iterative HNSW, or draw research
-conclusions.
+Milestone 1 remains preserved as a verified synthetic smoke pipeline. Milestone
+2 adds a separately namespaced SIFT1M benchmark harness for realistic exact,
+standard HNSW, and strict-order iterative HNSW search. The currently authorized
+Milestone 2 work is limited to a 10,000-row integration preflight and a bounded
+100,000-row qualification run; the complete benchmark is deliberately disabled.
 
 ## What is included
 
@@ -155,3 +156,44 @@ recomputes Recall@10 from the recorded IDs.
 
 Smoke output is diagnostic only. It must not be interpreted as evidence about
 the research question.
+
+## Milestone 2 qualification
+
+The frozen methodology is `docs/MILESTONE_2_PROTOCOL.md`. Milestone 2 uses the
+canonical ANN-Benchmarks SIFT1M HDF5 artifact without normalization, a globally
+deterministic SHA-256 scale ranking, exact 50/20/10/5/1 percent metadata
+filters, separate exact and HNSW tables, durable exact ground truth, persistent
+prepared database connections, and client-side monotonic execute-and-fetch
+timing.
+
+The large HDF5 file and generated scale-order cache live under `.runtime/` and
+are not committed. Each qualification run creates a new immutable directory
+under `raw_results/milestone_2/` with configuration, manifests, ground truth,
+raw executions, plans, validation evidence, resource observations, and
+checksums.
+
+From the repository root, reproduce the authorized stages with:
+
+```bash
+make m2-setup
+make m2-acquire
+make m2-test
+make postgres-start
+make m2-preflight
+make m2-qualification
+make postgres-stop
+```
+
+`m2-preflight` times 75 executions at 10,000 rows. `m2-qualification`
+physically rebuilds at 100,000 rows and times 600 executions. Both stages first
+generate exact ground truth for all 200 predetermined queries across all five
+filters and independently validate a fixed 20-combination sample. Neither
+target can launch 250k, 500k, 1M, or the eventual 120,000-execution matrix.
+Milestone 2 uses its own `milestone2` database schema and does not alter the
+Milestone 1 tables. The two qualification runs record a documented
+`pg_buffercache` reset because the managed qualification host cannot signal the
+pre-existing server; the eventual full benchmark continues to require a real
+server restart as frozen in the protocol.
+
+All Milestone 2 qualification measurements are infrastructure-validation data,
+not research findings or conclusions.

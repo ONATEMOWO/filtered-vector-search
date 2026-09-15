@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "protocol_id": "milestone-2-sift1m-v1",
+  "status": "accepted",
+  "postgresql_version": "17.11",
+  "pgvector_version": "0.8.6",
+  "python_minimum": "3.10",
+  "dimensions": 128,
+  "distance": "l2",
+  "distance_operator": "<->",
+  "operator_class": "vector_l2_ops",
+  "k": 10,
+  "final_scales": [100000, 250000, 500000, 1000000],
+  "filter_thresholds": [50, 20, 10, 5, 1],
+  "methods": ["exact", "hnsw_standard", "hnsw_iterative"],
+  "concurrent_queries": 1,
+  "dataset": {
+    "name": "SIFT1M",
+    "representation": "ANN-Benchmarks HDF5",
+    "source_url": "https://ann-benchmarks.com/sift-128-euclidean.hdf5",
+    "source_manifest": "data/sift1m/source_manifest.json",
+    "local_path": ".runtime/datasets/sift-128-euclidean.hdf5",
+    "expected_bytes": 525128288,
+    "expected_sha256": "dd6f0a6ed6b7ebb8934680f861a33ed01ff33991eaee4fd60914d854a0ca5984",
+    "keys": {
+      "base": "train",
+      "queries": "test",
+      "neighbors": "neighbors",
+      "distances": "distances"
+    },
+    "expected_shapes": {
+      "base": [1000000, 128],
+      "queries": [10000, 128],
+      "neighbors": [10000, 100],
+      "distances": [10000, 100]
+    },
+    "expected_dtypes": {
+      "base": "float32",
+      "queries": "float32",
+      "neighbors": "int32",
+      "distances": "float32"
+    },
+    "expected_attributes": {
+      "distance": "euclidean"
+    },
+    "preserve_values": true,
+    "normalize_vectors": false,
+    "id_origin": 0
+  },
+  "scale_assignment": {
+    "hash": "sha256",
+    "input_template": "sift-base-v1|{base_id}",
+    "encoding": "utf-8",
+    "sort_tiebreaker": "base_id",
+    "rank_origin": 0,
+    "filter_bucket_expression": "scale_rank % 100"
+  },
+  "query_selection": {
+    "hash": "sha256",
+    "input_template": "sift-query-v1|{query_id}",
+    "encoding": "utf-8",
+    "sort_tiebreaker": "query_id",
+    "measured_count": 200,
+    "warmup_count": 20,
+    "warmup_disjoint": true
+  },
+  "ground_truth": {
+    "source_table": "milestone2.sift_exact",
+    "query_count_per_scale": 200,
+    "with_boundary_ties": true,
+    "canonical_tiebreaker": "id",
+    "independent_bruteforce_samples_per_scale": 20,
+    "use_supplied_neighbors_for_filtered_or_reduced_scale": false,
+    "validate_full_scale_unfiltered_against_supplied_neighbors": true
+  },
+  "hnsw": {
+    "m": 16,
+    "ef_construction": 64,
+    "ef_search": 40,
+    "work_mem": "64MB",
+    "standard_iterative_scan": "off",
+    "iterative_scan": "strict_order",
+    "max_scan_tuples": 20000,
+    "scan_mem_multiplier": 1
+  },
+  "session": {
+    "jit": "off",
+    "statement_timeout": "120s",
+    "plan_cache_mode": "force_generic_plan",
+    "plan_cache_mode": "force_generic_plan",
+    "hnsw_enable_seqscan": "off",
+    "hnsw_enable_bitmapscan": "off",
+    "exact_scan_path_overrides": false
+  },
+  "final_execution": {
+    "rounds": 2,
+    "repetitions": 5,
+    "round_a_scale_order": [100000, 250000, 500000, 1000000],
+    "round_b_scale_order": [1000000, 500000, 250000, 100000],
+    "rebuild_hnsw_each_scale_round": true,
+    "warmup_queries_per_method_filter_block": 20,
+    "block_schedule": "sha256",
+    "shuffle_queries_each_repetition": true,
+    "planned_timed_executions": 120000,
+    "authorized": false
+  },
+  "timing": {
+    "clock": "time.perf_counter_ns",
+    "interval": "prepared statement execute plus complete fetch",
+    "raw_unit": "nanoseconds",
+    "persistent_connections": true,
+    "preparation_outside_timing": true,
+    "connection_creation_outside_timing": true,
+    "explain_latency_is_benchmark_latency": false
+  },
+  "plan_verification": {
+    "format": "json",
+    "options": ["ANALYZE", "BUFFERS", "SETTINGS", "TIMING OFF", "SUMMARY ON"],
+    "outside_timed_execution": true,
+    "failure_invalidates_run": true,
+    "explicit_current_setting_evidence": true
+  },
+  "cache_policy": {
+    "measurement_state": "operationally warmed",
+    "restart_postgresql_before_scale_round": true,
+    "qualification_reset_method": "pg_buffercache_evict_after_checkpoint",
+    "qualification_reset_reason": "sandbox cannot signal the pre-existing verified server or allocate a second server shared-memory segment",
+    "final_benchmark_reset_method": "postgresql_restart_required",
+    "flush_operating_system_cache": false,
+    "pg_prewarm_required": false,
+    "warmup_before_each_method_filter_block": true,
+    "ac_power_required": true,
+    "record_energy_mode": true
+  },
+  "artifacts": {
+    "root": "raw_results/milestone_2",
+    "append_only": true,
+    "run_id_includes_config_digest": true,
+    "complete_marker": "COMPLETE",
+    "active_marker": "ACTIVE",
+    "checksum_algorithm": "sha256"
+  }
+}

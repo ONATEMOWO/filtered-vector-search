@@ -1,0 +1,8 @@
+# Exact, deliberately small dependency surface for the Milestone 2 harness.
+# PostgreSQL 17.11 and pgvector 0.8.6 are server-side dependencies supplied by
+# the existing project-local runtime, not Python packages in this file.
+h5py==3.14.0
+numpy==2.2.6
+pgvector==0.4.1
+psycopg[binary]==3.2.9
+psutil==7.0.0

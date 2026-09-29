@@ -36,4 +36,3 @@ For assignment-specific extracts:
 For provenance:
 [commit history](/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/outputs/assignment_evidence/COMMIT_HISTORY.md) and
 [exact changed-file inventory](/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/outputs/assignment_evidence/FILE_INVENTORY.md).
-

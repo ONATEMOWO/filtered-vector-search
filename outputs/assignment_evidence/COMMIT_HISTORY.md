@@ -21,8 +21,9 @@ No benchmark was run during final packaging.
 | 2026-09-29 | `3692827` | Add checksum-linked qualification figures and measurement table |
 | 2026-09-29 | `e7952e5` | Record verified full 100k round 1 and academic progress evidence |
 | 2026-09-29 | `f671005` | Record verified full 100k round 2 and independent campaign proof |
+| 2026-09-29 | `fa5a03f` | Complete academic evidence and larger-scale review checkpoint |
 
-`0f5fe34` was the starting HEAD for the resumed work. The nine subsequent
+`0f5fe34` was the starting HEAD for the resumed work. The ten subsequent
 commits above were created during this resume, followed by the containing
 final evidence-packaging commit. Original uncommitted changes were preserved
 before the first of those commits. No prior run was rewritten.
@@ -44,6 +45,7 @@ cd199a2b523b875ab06a8de00953e17672a2800a  Complete Milestone 1 pgvector smoke pi
 3692827fda9989f8af2e598d170a16d0c34a5a77  Add checksum-linked qualification figures and measurement table
 e7952e5c1d8b22f5565945a24ef9259411d8f796  Record verified full 100k round 1 and academic progress evidence
 f67100500bbfcc09bf7ccd3b1e42dd8e344fc801  Record verified full 100k round 2 and independent campaign proof
+fa5a03f6babf533f6ed4f5a977c22373f55228a1  Complete academic evidence and larger-scale review checkpoint
 ```
 
 ## Execution chronology
@@ -56,4 +58,3 @@ f67100500bbfcc09bf7ccd3b1e42dd8e344fc801  Record verified full 100k round 2 and 
 6. Physically rebuild 100k round 1, validate truth, obtain a real restart, execute and independently verify 15,000 timings; commit.
 7. Physically rebuild 100k round 2, validate truth, obtain the second real restart, execute 15,000 timings; independently verify both as a pair and commit.
 8. Package the final academic evidence and stop before 250k+ for review.
-

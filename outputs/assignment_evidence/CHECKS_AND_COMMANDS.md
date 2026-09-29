@@ -105,6 +105,18 @@ raw results and three historical Milestone 2 directories were unchanged.
 Figure generator, input and output hashes still matched their provenance.
 An independent read-only documentation audit matched all 30 full-100k table
 rows and resource/plan figures to the saved artifacts; all checked links resolved.
+The final staged-file check detected trailing blank lines in three new index
+documents; those were removed in a documentation-only follow-up, and the
+evidence-bundle checksum file was refreshed. Benchmark artifacts were unchanged.
+The all-changes whitespace scan also reports a trailing blank in the preserved
+invalid run's `20260929T165840Z_bcce4b4163d7/run.log`. That immutable raw log
+was deliberately not edited. The staged documentation check and the complete
+source/documentation scan excluding `raw_results` pass:
+
+```bash
+git diff --cached --check
+git diff 0f5fe34 --check -- . ':(exclude)raw_results'
+```
 
 Each verifies the pinned source HDF5 identity and values, deterministic scale
 and query selection, full source/table stream linkage, all stored ground-truth

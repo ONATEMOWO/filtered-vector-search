@@ -1,0 +1,25 @@
+2026-09-29T16:54:42.504204+00:00 starting preflight-10k at scale=10000; expected timed executions=75
+2026-09-29T16:54:43.208976+00:00 validating SIFT1M artifact /Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/.runtime/datasets/sift-128-euclidean.hdf5
+2026-09-29T16:54:44.520013+00:00 constructing/reusing global one-million-ID SHA-256 scale order
+2026-09-29T16:54:44.616227+00:00 reading 10000 globally selected SIFT base vectors
+2026-09-29T16:54:44.963426+00:00 loading exact/HNSW tables and building indexes
+2026-09-29T16:54:52.622741+00:00 generating 1,000 durable PostgreSQL exact ground-truth records
+2026-09-29T16:54:54.849444+00:00 re-executing all 1,000 exact ground-truth combinations for determinism
+2026-09-29T16:54:56.860277+00:00 evicting PostgreSQL shared buffers after CHECKPOINT; OS cache is not flushed
+2026-09-29T16:54:57.156231+00:00 capturing 15 untimed plan audits before the defined warm-up
+2026-09-29T16:54:57.318597+00:00 block 1/15 round=1 method=exact filter=1: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.338665+00:00 block 2/15 round=1 method=exact filter=20: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.378612+00:00 block 3/15 round=1 method=exact filter=5: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.398797+00:00 block 4/15 round=1 method=hnsw_iterative filter=50: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.425340+00:00 block 5/15 round=1 method=hnsw_iterative filter=10: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.469877+00:00 block 6/15 round=1 method=hnsw_iterative filter=1: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.600187+00:00 block 7/15 round=1 method=hnsw_standard filter=5: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.629101+00:00 block 8/15 round=1 method=hnsw_standard filter=50: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.656349+00:00 block 9/15 round=1 method=hnsw_iterative filter=5: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.714869+00:00 block 10/15 round=1 method=exact filter=10: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.745532+00:00 block 11/15 round=1 method=hnsw_standard filter=1: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.769789+00:00 block 12/15 round=1 method=exact filter=50: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.860193+00:00 block 13/15 round=1 method=hnsw_standard filter=10: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.887360+00:00 block 14/15 round=1 method=hnsw_standard filter=20: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:57.910691+00:00 block 15/15 round=1 method=hnsw_iterative filter=20: 20 warm-ups, 1 timed rounds
+2026-09-29T16:54:58.057180+00:00 all hard qualification gates passed; finalizing checksums

@@ -1,0 +1,60 @@
+{
+  "arguments": [
+    "raw_results/milestone_2/20260929T165442Z_3a1810512444",
+    "raw_results/milestone_2/20260929T165921Z_bcce4b4163d7",
+    "--output-dir",
+    "outputs/assignment_evidence"
+  ],
+  "completeness_reduction": "fraction of executions returning exactly 10 qualifying rows",
+  "derived_artifact_sha256": {
+    "VERIFIED_MEASUREMENTS.md": "3dd7775b5c84623bdb4b8070e38c0a026b16f62c194db1a691b6c7395940aafc",
+    "qualification_client_latency.png": "fc3c2f7dbc419f4f9c87ca071bea60183bf5a362fda026a864b1b008ff0757b1",
+    "qualification_recall_at_10.png": "86c93e0d242b6dbc45232f57134713175a604616d5b5141e4a6506b5156c3bb2",
+    "qualification_result_completeness.png": "7732052b240282829e4f6b3e8ed9bfe70c6fcffa3dbd78bed74c7690ceb6b6e7"
+  },
+  "final_research_conclusions": false,
+  "generated_at_utc": "2026-09-29T17:18:10.278366+00:00",
+  "generator": "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/analysis/generate_assignment_figures.py",
+  "generator_sha256": "b5a041f44cecf58d45123a0b6c8ca092eaa71d3c43ada3f1539daabcf6b139d2",
+  "latency_reduction": "median across repetitions per query, then median across queries",
+  "matplotlib_version": "3.10.0",
+  "python_version": "3.12.0",
+  "qualification_only": true,
+  "recall_reduction": "mean across repetitions per query, then mean across queries",
+  "source_payload_checksums_verified": true,
+  "sources": [
+    {
+      "path": "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/raw_results/milestone_2/20260929T165442Z_3a1810512444",
+      "repetitions": 1,
+      "run_id": "20260929T165442Z_3a1810512444",
+      "scale_rows": 10000,
+      "source_sha256": {
+        "COMPLETE.json": "216844cdbfe09665c7520dcf2062aede0f718a767750e4ecef712e9415669887",
+        "checksums.sha256": "352864de9a2e8dc424573dd345e84bb565c846039494d4c315bf8631459749f2",
+        "config.json": "3a181051244461fe0152acddac69fe48fadf2e9343bfc26d1a71b143b91c3e52",
+        "executions.jsonl": "9789e9b61abdc6d2ac09aa0e71c09361cf430602101285081588ca68c3712e91",
+        "summary.json": "cf1583ec08e640618e2bfa57ec266ce3e3767cb97cbc70e9365bc71ba36da6d1",
+        "validation_report.json": "3419f3eb72dada5f5c71bc43fd677ce5bdfb9f9b515d332f3999b46982962ed4"
+      },
+      "stage_id": "preflight-10k",
+      "timed_query_count": 5
+    },
+    {
+      "path": "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/raw_results/milestone_2/20260929T165921Z_bcce4b4163d7",
+      "repetitions": 2,
+      "run_id": "20260929T165921Z_bcce4b4163d7",
+      "scale_rows": 100000,
+      "source_sha256": {
+        "COMPLETE.json": "b7650b44cee2ee72d5f9d9117c9f8040ea53f5978ca6ea7786761c167cb4ba10",
+        "checksums.sha256": "f50994581cfd9a017bfe6de802a826c0aa09bab6bf9461838088af19e28f1796",
+        "config.json": "bcce4b4163d71d8c03dfdffd9b82528adc4b5ee3314bd15ab780061a0800f54f",
+        "executions.jsonl": "b5388b900fcc5c662bc8d0871c15f55b6696c5e78319fdb6fc62ec3f90cac9f9",
+        "summary.json": "e05f8727c3d62c18e7e6cd233c7ea83bef7990e4b2a05ff63a6890e75e628489",
+        "validation_report.json": "6a6eb9890677c9bf38f763c2f49e96ff634547db6f406c1db6a92d5c731ae011"
+      },
+      "stage_id": "qualification-100k",
+      "timed_query_count": 20
+    }
+  ],
+  "summaries_recomputed_from_executions": true
+}

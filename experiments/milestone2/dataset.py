@@ -49,27 +49,169 @@ def deterministic_id_order(count: int, domain: str) -> np.ndarray:
     return np.fromiter((identifier for _, identifier in ranked), dtype=np.int32, count=count)
 
 
-def ensure_scale_order(base_count: int = 1_000_000) -> tuple[np.ndarray, dict[str, Any]]:
+def _validate_scale_order(
+    order: np.ndarray,
+    base_count: int,
+    *,
+    expected_ordered_ids_sha256: str | None,
+) -> str:
+    if order.dtype != np.dtype(np.int32) or order.shape != (base_count,):
+        raise ValueError(
+            f"scale order must have dtype int32 and shape ({base_count},), "
+            f"got dtype={order.dtype} shape={order.shape}"
+        )
+    minimum = int(np.min(order))
+    maximum = int(np.max(order))
+    if minimum != 0 or maximum != base_count - 1:
+        raise ValueError(
+            f"scale order IDs must span [0, {base_count - 1}], got [{minimum}, {maximum}]"
+        )
+    if not np.array_equal(np.sort(order), np.arange(base_count, dtype=np.int32)):
+        raise ValueError("scale order is not a permutation of every zero-based base ID")
+    ordered_ids_sha256 = hashlib.sha256(
+        order.astype("<i4", copy=False).tobytes()
+    ).hexdigest()
+    if (
+        expected_ordered_ids_sha256 is not None
+        and ordered_ids_sha256 != expected_ordered_ids_sha256
+    ):
+        raise ValueError(
+            "scale order digest mismatch: "
+            f"expected {expected_ordered_ids_sha256}, got {ordered_ids_sha256}"
+        )
+    return ordered_ids_sha256
+
+
+def ensure_scale_order(
+    base_count: int = 1_000_000,
+    *,
+    expected_ordered_ids_sha256: str | None = None,
+    expected_cache_sha256: str | None = None,
+) -> tuple[np.ndarray, dict[str, Any]]:
     GENERATED_DIR.mkdir(parents=True, exist_ok=True)
     order_path = GENERATED_DIR / f"scale_order_{base_count}.npy"
     if order_path.exists():
+        cache_sha256 = sha256_file(order_path)
+        if expected_cache_sha256 is not None and cache_sha256 != expected_cache_sha256:
+            raise ValueError(
+                "cached scale order file checksum mismatch: "
+                f"expected {expected_cache_sha256}, got {cache_sha256}"
+            )
         order = np.load(order_path, allow_pickle=False)
-        if order.dtype != np.int32 or order.shape != (base_count,):
-            raise ValueError(f"invalid cached scale order at {order_path}")
     else:
         order = deterministic_id_order(base_count, SCALE_DOMAIN)
+        _validate_scale_order(
+            order,
+            base_count,
+            expected_ordered_ids_sha256=expected_ordered_ids_sha256,
+        )
         temporary = order_path.with_suffix(".npy.part")
         with temporary.open("wb") as handle:
             np.save(handle, order, allow_pickle=False)
+        cache_sha256 = sha256_file(temporary)
+        if expected_cache_sha256 is not None and cache_sha256 != expected_cache_sha256:
+            temporary.unlink(missing_ok=True)
+            raise ValueError(
+                "generated scale order cache checksum mismatch: "
+                f"expected {expected_cache_sha256}, got {cache_sha256}"
+            )
         temporary.replace(order_path)
+    ordered_ids_sha256 = _validate_scale_order(
+        order,
+        base_count,
+        expected_ordered_ids_sha256=expected_ordered_ids_sha256,
+    )
     return order, {
         "algorithm": "ascending SHA-256 digest, then ascending base_id",
         "domain": SCALE_DOMAIN,
         "base_count": base_count,
         "zero_based_scale_rank": True,
         "cache_path": str(order_path.relative_to(ROOT)),
-        "cache_sha256": sha256_file(order_path),
-        "ordered_ids_sha256": hashlib.sha256(order.astype("<i4", copy=False).tobytes()).hexdigest(),
+        "cache_sha256": cache_sha256,
+        "expected_cache_sha256": expected_cache_sha256,
+        "cache_checksum_valid": expected_cache_sha256 is None
+        or cache_sha256 == expected_cache_sha256,
+        "ordered_ids_sha256": ordered_ids_sha256,
+        "expected_ordered_ids_sha256": expected_ordered_ids_sha256,
+        "ordered_ids_checksum_valid": expected_ordered_ids_sha256 is None
+        or ordered_ids_sha256 == expected_ordered_ids_sha256,
+        "range_valid": True,
+        "permutation_valid": True,
+    }
+
+
+def validate_source_manifest_identity(
+    source_manifest: dict[str, Any], dataset_protocol: dict[str, Any]
+) -> dict[str, Any]:
+    """Require the checked-in source manifest to match the frozen protocol identity."""
+    if not isinstance(source_manifest, dict):
+        raise ValueError("SIFT1M source manifest must be a JSON object")
+    if not isinstance(dataset_protocol, dict):
+        raise ValueError("frozen dataset protocol must be a JSON object")
+
+    failures: list[str] = []
+
+    def check(label: str, actual: Any, expected: Any) -> None:
+        if actual != expected:
+            failures.append(f"{label}: expected {expected!r}, got {actual!r}")
+
+    check("canonical_url", source_manifest.get("canonical_url"), dataset_protocol.get("source_url"))
+    check("byte_size", source_manifest.get("byte_size"), dataset_protocol.get("expected_bytes"))
+    check("sha256", source_manifest.get("sha256"), dataset_protocol.get("expected_sha256"))
+    check(
+        "values_normalized",
+        source_manifest.get("values_normalized"),
+        dataset_protocol.get("normalize_vectors"),
+    )
+
+    protocol_shapes = dataset_protocol.get("expected_shapes", {})
+    check("expected_base_shape", source_manifest.get("expected_base_shape"), protocol_shapes.get("base"))
+    check(
+        "expected_query_shape",
+        source_manifest.get("expected_query_shape"),
+        protocol_shapes.get("queries"),
+    )
+    check(
+        "expected_neighbor_shape",
+        source_manifest.get("expected_neighbor_shape"),
+        protocol_shapes.get("neighbors"),
+    )
+
+    protocol_keys = dataset_protocol.get("keys", {})
+    protocol_dtypes = dataset_protocol.get("expected_dtypes", {})
+    validated_groups = source_manifest.get("validated_groups", {})
+    for logical_name in ("base", "queries", "neighbors", "distances"):
+        group_name = protocol_keys.get(logical_name)
+        group = validated_groups.get(group_name, {}) if group_name is not None else {}
+        check(
+            f"validated_groups.{group_name}.shape",
+            group.get("shape"),
+            protocol_shapes.get(logical_name),
+        )
+        check(
+            f"validated_groups.{group_name}.dtype",
+            group.get("dtype"),
+            protocol_dtypes.get(logical_name),
+        )
+
+    if failures:
+        raise ValueError(
+            "SIFT1M source manifest does not match the frozen protocol: "
+            + "; ".join(failures)
+        )
+    return {
+        "passed": True,
+        "source_manifest_sha256": hashlib.sha256(
+            canonical_json_bytes(source_manifest)
+        ).hexdigest(),
+        "checked_fields": [
+            "canonical_url",
+            "byte_size",
+            "sha256",
+            "values_normalized",
+            "expected shapes",
+            "validated group shapes and dtypes",
+        ],
     }
 
 

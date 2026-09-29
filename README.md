@@ -166,8 +166,9 @@ filters, separate exact and HNSW tables, durable exact ground truth, persistent
 prepared database connections, and client-side monotonic execute-and-fetch
 timing.
 
-The large HDF5 file and generated scale-order cache live under `.runtime/` and
-are not committed. Each qualification run creates a new immutable directory
+The large HDF5 file lives under `.runtime/datasets/`; the generated scale-order
+cache lives under ignored `data/generated/milestone2/`. Neither is committed.
+Each qualification run creates a new immutable directory
 under `raw_results/milestone_2/` with configuration, manifests, ground truth,
 raw executions, plans, validation evidence, resource observations, and
 checksums.
@@ -180,6 +181,8 @@ make m2-acquire
 make m2-test
 make postgres-start
 make m2-preflight
+git add raw_results/milestone_2
+git commit -m "Record verified 10k SIFT preflight"
 make m2-qualification
 make postgres-stop
 ```
@@ -189,6 +192,9 @@ physically rebuilds at 100,000 rows and times 600 executions. Both stages first
 generate exact ground truth for all 200 predetermined queries across all five
 filters and independently validate a fixed 20-combination sample. Neither
 target can launch 250k, 500k, 1M, or the eventual 120,000-execution matrix.
+The runner requires a clean committed worktree at launch, so a finalized
+preflight must be verified and committed before starting the 100k stage. It
+also records and gates AC-power state.
 Milestone 2 uses its own `milestone2` database schema and does not alter the
 Milestone 1 tables. The two qualification runs record a documented
 `pg_buffercache` reset because the managed qualification host cannot signal the

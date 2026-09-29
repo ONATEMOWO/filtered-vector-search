@@ -11,7 +11,7 @@ import struct
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterable, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence
 
 import numpy as np
 import psycopg
@@ -85,16 +85,27 @@ def vector_stream_checksum(connection: psycopg.Connection[Any], table: str) -> s
     return digest.hexdigest()
 
 
+def source_stream_checksum(base_ids: np.ndarray, vectors: np.ndarray, buckets: np.ndarray) -> str:
+    """Match vector_send's network-order float32 payload using the original source rows."""
+    digest = hashlib.sha256()
+    for rank, (identifier, vector, bucket) in enumerate(zip(base_ids, vectors, buckets, strict=True)):
+        digest.update(struct.pack("<iih", int(identifier), rank, int(bucket)))
+        digest.update(struct.pack(">HH", len(vector), 0))
+        digest.update(np.asarray(vector, dtype=">f4").tobytes())
+    return digest.hexdigest()
+
+
 def load_scale(
     connection: psycopg.Connection[Any],
     *,
     base_ids: np.ndarray,
     vectors: np.ndarray,
     buckets: np.ndarray,
-) -> dict[str, int]:
+    hnsw_build_settings: Mapping[str, Any],
+) -> dict[str, Any]:
     if len(base_ids) != len(vectors) or len(base_ids) != len(buckets):
         raise ValueError("scale arrays have different lengths")
-    timings: dict[str, int] = {}
+    timings: dict[str, Any] = {}
     execute_sql_file(connection, ROOT / "sql" / "milestone2" / "001_schema.sql")
 
     started = time.perf_counter_ns()
@@ -128,8 +139,35 @@ def load_scale(
     timings["exact_index_ns"] = time.perf_counter_ns() - started
 
     with connection.cursor() as cursor:
-        cursor.execute("SET maintenance_work_mem = '1GB'", prepare=False)
-        cursor.execute("SET max_parallel_maintenance_workers = 0", prepare=False)
+        maintenance_work_mem = str(hnsw_build_settings["build_maintenance_work_mem"])
+        max_parallel_workers = str(
+            int(hnsw_build_settings["build_max_parallel_maintenance_workers"])
+        )
+        cursor.execute(
+            "SELECT set_config('maintenance_work_mem', %s, false)",
+            (maintenance_work_mem,),
+            prepare=False,
+        )
+        cursor.execute(
+            "SELECT set_config('max_parallel_maintenance_workers', %s, false)",
+            (max_parallel_workers,),
+            prepare=False,
+        )
+        cursor.execute(
+            "SELECT current_setting('maintenance_work_mem'), "
+            "current_setting('max_parallel_maintenance_workers')",
+            prepare=False,
+        )
+        observed_build_settings = cursor.fetchone()
+        if observed_build_settings != (maintenance_work_mem, max_parallel_workers):
+            raise AssertionError(
+                "HNSW build settings differ from the frozen protocol: "
+                f"{observed_build_settings!r}"
+            )
+    timings["hnsw_build_settings"] = {
+        "maintenance_work_mem": observed_build_settings[0],
+        "max_parallel_maintenance_workers": observed_build_settings[1],
+    }
     started = time.perf_counter_ns()
     execute_sql_file(connection, ROOT / "sql" / "milestone2" / "003_hnsw_index.sql")
     timings["hnsw_build_ns"] = time.perf_counter_ns() - started
@@ -162,24 +200,54 @@ SELECT
       OR e.filter_bucket IS DISTINCT FROM h.filter_bucket
       OR e.embedding::text IS DISTINCT FROM h.embedding::text),
   (SELECT min(vector_dims(embedding)) FROM {EXACT_TABLE}),
-  (SELECT max(vector_dims(embedding)) FROM {EXACT_TABLE});
+  (SELECT max(vector_dims(embedding)) FROM {EXACT_TABLE}),
+  (SELECT count(*) FROM {EXACT_TABLE}
+   WHERE embedding::text ~* '(nan|infinity)'),
+  (SELECT count(*) FROM {HNSW_TABLE}
+   WHERE embedding::text ~* '(nan|infinity)');
 """,
             prepare=False,
         )
-        exact_count, hnsw_count, unequal, min_dims, max_dims = cursor.fetchone()
-        if (exact_count, hnsw_count, unequal, min_dims, max_dims) != (
+        (
+            exact_count,
+            hnsw_count,
+            unequal,
+            min_dims,
+            max_dims,
+            exact_nonfinite,
+            hnsw_nonfinite,
+        ) = cursor.fetchone()
+        if (
+            exact_count,
+            hnsw_count,
+            unequal,
+            min_dims,
+            max_dims,
+            exact_nonfinite,
+            hnsw_nonfinite,
+        ) != (
             scale_rows,
             scale_rows,
             0,
             128,
             128,
+            0,
+            0,
         ):
             raise AssertionError(
-                "table equivalence/dimension check failed: "
-                f"{(exact_count, hnsw_count, unequal, min_dims, max_dims)}"
+                "table equivalence/dimension/non-finite check failed: "
+                f"{(exact_count, hnsw_count, unequal, min_dims, max_dims, exact_nonfinite, hnsw_nonfinite)}"
             )
 
         filter_counts: dict[str, dict[str, int]] = {}
+        cursor.execute(
+            f"SELECT count(DISTINCT scale_rank), min(scale_rank), max(scale_rank), "
+            f"count(*) FILTER (WHERE filter_bucket <> scale_rank % 100) FROM {EXACT_TABLE}",
+            prepare=False,
+        )
+        rank_evidence = cursor.fetchone()
+        if rank_evidence != (scale_rows, 0, scale_rows - 1, 0):
+            raise AssertionError(f"scale rank/bucket contract failed: {rank_evidence}")
         for threshold in thresholds:
             cursor.execute(
                 f"SELECT "
@@ -214,7 +282,9 @@ SELECT
             for row in cursor.fetchall()
         ]
         exact_vector_indexes = [
-            row for row in indexes if row["table"] == "sift_exact" and "USING hnsw" in row["definition"]
+            row
+            for row in indexes
+            if row["table"] == "sift_exact" and "(embedding" in row["definition"]
         ]
         hnsw_filter_indexes = [
             row
@@ -223,6 +293,24 @@ SELECT
         ]
         if exact_vector_indexes or hnsw_filter_indexes:
             raise AssertionError("exact/HNSW index separation is invalid")
+        exact_filter_indexes = [
+            row
+            for row in indexes
+            if row["table"] == "sift_exact"
+            and row["index"] == "sift_exact_filter_bucket_idx"
+            and "USING btree (filter_bucket)" in row["definition"]
+        ]
+        hnsw_vector_indexes = [
+            row
+            for row in indexes
+            if row["table"] == "sift_hnsw"
+            and row["index"] == HNSW_INDEX
+            and "USING hnsw (embedding vector_l2_ops)" in row["definition"]
+            and "m='16'" in row["definition"]
+            and "ef_construction='64'" in row["definition"]
+        ]
+        if len(exact_filter_indexes) != 1 or len(hnsw_vector_indexes) != 1:
+            raise AssertionError("required exact metadata/HNSW index definitions are missing")
 
         cursor.execute(
             "SELECT tablename, attname, null_frac, n_distinct, most_common_vals::text, "
@@ -268,9 +356,27 @@ WHERE n.nspname=%s ORDER BY c.relname
         "exact_count": exact_count,
         "hnsw_count": hnsw_count,
         "unequal_row_count": unequal,
+        "rank_contract": {
+            "distinct_ranks": rank_evidence[0], "minimum": rank_evidence[1],
+            "maximum": rank_evidence[2], "bucket_mismatches": rank_evidence[3],
+        },
         "dimensions": {"minimum": min_dims, "maximum": max_dims},
+        "nonfinite_vector_counts": {
+            "exact": exact_nonfinite,
+            "hnsw": hnsw_nonfinite,
+            "validation": "case-insensitive vector text scan for NaN or Infinity",
+        },
         "filter_counts": filter_counts,
         "indexes": indexes,
+        "index_contract": {
+            "exact_metadata_btree_present": True,
+            "exact_embedding_index_absent": True,
+            "hnsw_metadata_btree_absent": True,
+            "hnsw_vector_index_present": True,
+            "hnsw_operator_class": "vector_l2_ops",
+            "hnsw_m": 16,
+            "hnsw_ef_construction": 64,
+        },
         "statistics": statistics,
         "relation_sizes": relation_sizes,
         "ordered_vector_stream_sha256": exact_checksum,
@@ -358,13 +464,15 @@ def search_sql(method: str, threshold: int, k: int) -> str:
         return (
             f"SELECT id, embedding <-> %s::vector AS distance FROM {HNSW_TABLE} "
             f"WHERE filter_bucket < {threshold} "
-            f"ORDER BY embedding <-> %s::vector LIMIT {k}"
+            f"ORDER BY distance LIMIT {k}"
         )
     raise ValueError(f"unknown method: {method}")
 
 
 def search_parameters(method: str, vector: np.ndarray) -> tuple[np.ndarray, ...]:
-    return (vector,) if method == "exact" else (vector, vector)
+    if method not in METHOD_SESSION_SETTINGS:
+        raise ValueError(f"unknown method: {method}")
+    return (vector,)
 
 
 @dataclass
@@ -404,6 +512,8 @@ def session_settings(connection: psycopg.Connection[Any]) -> dict[str, str]:
         "jit",
         "enable_seqscan",
         "enable_bitmapscan",
+        "enable_indexscan",
+        "enable_indexonlyscan",
         "plan_cache_mode",
         "statement_timeout",
     )
@@ -469,6 +579,8 @@ FROM (
         evicted, not_evicted = cursor.fetchone()
         cursor.execute("SELECT * FROM pg_buffercache_summary()", prepare=False)
         after_row = cursor.fetchone()
+    if after_row[0] != 0:
+        raise AssertionError("qualification shared-buffer eviction did not empty shared buffers")
     return {
         "method": "pg_buffercache_evict over a materialized buffer-id snapshot after CHECKPOINT",
         "reason": (

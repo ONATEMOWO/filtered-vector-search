@@ -33,7 +33,15 @@ def sha256_json(value: Any) -> str:
 
 def read_json(path: Path) -> dict[str, Any]:
     with path.open(encoding="utf-8") as handle:
-        value = json.load(handle)
+        def reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+            value: dict[str, Any] = {}
+            for key, item in pairs:
+                if key in value:
+                    raise ValueError(f"duplicate JSON key {key!r} in {path}")
+                value[key] = item
+            return value
+
+        value = json.load(handle, object_pairs_hook=reject_duplicate_keys)
     if not isinstance(value, dict):
         raise ValueError(f"expected a JSON object in {path}")
     return value
@@ -131,9 +139,22 @@ def validate_config(protocol: dict[str, Any], stage: dict[str, Any]) -> None:
             "dataset",
             "expected_sha256",
         ): "dd6f0a6ed6b7ebb8934680f861a33ed01ff33991eaee4fd60914d854a0ca5984",
+        ("scale_assignment", "base_count"): 1000000,
+        ("scale_assignment", "ordered_ids_serialization"): "little-endian int32",
+        (
+            "scale_assignment",
+            "expected_ordered_ids_sha256",
+        ): "5fff299d2950d88779871ffa4b21660c51d295c44f09ffbee82bac7f164b1fc9",
+        ("scale_assignment", "cache_format"): "NumPy .npy int32",
+        (
+            "scale_assignment",
+            "expected_cache_sha256",
+        ): "73913a6dc24c281c58e222bcd1f277fdd45ff48faa37bf511bad1a842490184e",
         ("hnsw", "m"): 16,
         ("hnsw", "ef_construction"): 64,
         ("hnsw", "ef_search"): 40,
+        ("hnsw", "build_maintenance_work_mem"): "1GB",
+        ("hnsw", "build_max_parallel_maintenance_workers"): 0,
         ("hnsw", "work_mem"): "64MB",
         ("hnsw", "standard_iterative_scan"): "off",
         ("hnsw", "iterative_scan"): "strict_order",
@@ -157,10 +178,78 @@ def validate_config(protocol: dict[str, Any], stage: dict[str, Any]) -> None:
                 f"protocol {section}.{key} must be {expected_value!r}, got {actual!r}"
             )
 
+    expected_dataset_contract = {
+        "keys": {
+            "base": "train",
+            "queries": "test",
+            "neighbors": "neighbors",
+            "distances": "distances",
+        },
+        "expected_shapes": {
+            "base": [1000000, 128],
+            "queries": [10000, 128],
+            "neighbors": [10000, 100],
+            "distances": [10000, 100],
+        },
+        "expected_dtypes": {
+            "base": "float32",
+            "queries": "float32",
+            "neighbors": "int32",
+            "distances": "float32",
+        },
+        "expected_attributes": {"distance": "euclidean"},
+        "preserve_values": True,
+        "normalize_vectors": False,
+        "id_origin": 0,
+    }
+    for key, expected_value in expected_dataset_contract.items():
+        actual = protocol.get("dataset", {}).get(key)
+        if actual != expected_value:
+            raise ValueError(
+                f"protocol dataset.{key} must be {expected_value!r}, got {actual!r}"
+            )
+
     if stage.get("protocol_id") != protocol.get("protocol_id"):
         raise ValueError("stage protocol_id does not match the frozen protocol")
     if stage.get("stage_id") not in {"preflight-10k", "qualification-100k"}:
         raise ValueError("only the accepted qualification stages may run")
+    accepted_stage_profiles = {
+        "preflight-10k": {
+            "schema_version": 1,
+            "scale_rows": 10_000,
+            "rounds": 1,
+            "rebuild_hnsw_each_round": True,
+            "ground_truth_query_count": 200,
+            "timed_query_count": 5,
+            "warmup_query_count": 20,
+            "repetitions": 1,
+            "independent_validation_count": 20,
+            "record_resource_projection": True,
+            "stop_after_stage": True,
+            "full_benchmark_authorized": False,
+        },
+        "qualification-100k": {
+            "schema_version": 1,
+            "scale_rows": 100_000,
+            "rounds": 1,
+            "rebuild_hnsw_each_round": True,
+            "ground_truth_query_count": 200,
+            "timed_query_count": 20,
+            "warmup_query_count": 20,
+            "repetitions": 2,
+            "independent_validation_count": 20,
+            "record_resource_projection": True,
+            "stop_after_stage": True,
+            "full_benchmark_authorized": False,
+        },
+    }
+    stage_id = str(stage["stage_id"])
+    for key, expected_value in accepted_stage_profiles[stage_id].items():
+        if stage.get(key) != expected_value:
+            raise ValueError(
+                f"stage {stage_id}.{key} must be {expected_value!r}, "
+                f"got {stage.get(key)!r}"
+            )
     scale_rows = int(stage.get("scale_rows", 0))
     if scale_rows not in ALLOWED_QUALIFICATION_SCALES:
         raise ValueError("qualification runner refuses scales above 100,000 rows")

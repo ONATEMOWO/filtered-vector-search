@@ -38,6 +38,7 @@ from .database import (
     search_parameters,
     search_sql,
     session_settings,
+    source_stream_checksum,
     timed_execute_fetch,
     validate_source_samples,
     verify_versions,
@@ -53,6 +54,7 @@ from .dataset import (
     select_query_ids,
     serializable_scale_manifest,
     validate_hdf5,
+    validate_source_manifest_identity,
 )
 from .ground_truth import (
     generate_ground_truth,
@@ -84,9 +86,13 @@ class RunLog:
 
     def close(self) -> None:
         if not self._handle.closed:
+            self.sync()
+            self._handle.close()
+
+    def sync(self) -> None:
+        if not self._handle.closed:
             self._handle.flush()
             os.fsync(self._handle.fileno())
-            self._handle.close()
 
 
 def git_output(*arguments: str) -> str:
@@ -104,6 +110,14 @@ def git_state() -> dict[str, Any]:
         "dirty": bool(status),
         "status_porcelain": status.splitlines(),
     }
+
+
+def require_clean_git_state(state: dict[str, Any]) -> None:
+    if bool(state.get("dirty")) or state.get("status_porcelain"):
+        raise RuntimeError(
+            "qualification runs require a clean committed Git state; commit source and "
+            "prior append-only artifacts before launching"
+        )
 
 
 def verify_milestone1_preserved() -> dict[str, Any]:
@@ -142,31 +156,52 @@ def deterministic_order(domain: str, values: list[Any]) -> list[Any]:
 
 
 def build_schedule(config: BenchmarkConfig, timed_query_ids: list[int]) -> dict[str, Any]:
-    block_keys = [f"{method}|{threshold}" for method in config.methods for threshold in config.filters]
-    ordered_keys = deterministic_order(f"m2-block-v1|{config.stage['stage_id']}", block_keys)
     blocks: list[dict[str, Any]] = []
-    for block_index, key in enumerate(ordered_keys, start=1):
-        method, threshold_text = key.split("|", maxsplit=1)
-        threshold = int(threshold_text)
-        repetitions: list[list[int]] = []
-        for repetition in range(1, config.repetitions + 1):
-            repetitions.append(
-                deterministic_order(
-                    f"m2-query-order-v1|{config.stage['stage_id']}|{method}|{threshold}|{repetition}",
-                    timed_query_ids,
-                )
-            )
-        blocks.append(
-            {
-                "block_index": block_index,
-                "method": method,
-                "filter_threshold": threshold,
-                "query_order_by_repetition": repetitions,
-            }
+    block_index = 0
+    for round_number in range(1, config.rounds + 1):
+        block_domain = (
+            f"m2-block-v1|{config.protocol['protocol_id']}|"
+            f"{config.stage['stage_id']}|{round_number}|{config.scale_rows}"
         )
+        block_keys = [
+            f"{method}|{threshold}"
+            for method in config.methods
+            for threshold in config.filters
+        ]
+        ordered_keys = deterministic_order(block_domain, block_keys)
+        for key in ordered_keys:
+            block_index += 1
+            method, threshold_text = key.split("|", maxsplit=1)
+            threshold = int(threshold_text)
+            repetitions: list[list[int]] = []
+            for repetition in range(1, config.repetitions + 1):
+                repetitions.append(
+                    deterministic_order(
+                        (
+                            f"m2-query-order-v1|{config.protocol['protocol_id']}|"
+                            f"{config.stage['stage_id']}|{round_number}|{config.scale_rows}|"
+                            f"{method}|{threshold}|{repetition}"
+                        ),
+                        timed_query_ids,
+                    )
+                )
+            blocks.append(
+                {
+                    "block_index": block_index,
+                    "round": round_number,
+                    "scale_rows": config.scale_rows,
+                    "block_schedule_domain": block_domain,
+                    "method": method,
+                    "filter_threshold": threshold,
+                    "query_order_by_repetition": repetitions,
+                }
+            )
     return {
         "algorithm": "ascending SHA-256 digest with stable textual tie-break",
+        "protocol_id": config.protocol["protocol_id"],
         "stage_id": config.stage["stage_id"],
+        "scale_rows": config.scale_rows,
+        "rounds": config.rounds,
         "blocks": blocks,
     }
 
@@ -229,7 +264,167 @@ def directory_size(path: Path) -> int:
     return sum(item.stat().st_size for item in path.rglob("*") if item.is_file())
 
 
-def prepared_statement_evidence(connections: dict[str, Any]) -> dict[str, Any]:
+def build_resource_projection(
+    config: BenchmarkConfig,
+    phase_metrics: dict[str, Any],
+    execution_rows: list[dict[str, Any]],
+    relation_sizes: list[dict[str, Any]],
+    run_dir: Path,
+) -> dict[str, Any]:
+    """Create a transparent, mechanical planning estimate from qualification evidence."""
+    durations = [
+        int(row["duration_ns"])
+        for row in execution_rows
+        if row.get("error_type") is None
+    ]
+    if not durations:
+        raise AssertionError("cannot project resources without successful timed executions")
+    final_scales = [int(value) for value in config.protocol["final_scales"]]
+    final_rounds = int(config.protocol["final_execution"]["rounds"])
+    linear_scale_round_factor = sum(
+        scale / config.scale_rows for scale in final_scales
+    ) * final_rounds
+    projectable_phases = (
+        "source_scale_read_ns",
+        "copy_exact_ns",
+        "copy_hnsw_from_exact_ns",
+        "exact_index_ns",
+        "hnsw_build_ns",
+        "vacuum_analyze_checkpoint_ns",
+        "ground_truth_generation_ns",
+        "ground_truth_determinism_reexecution_ns",
+        "independent_ground_truth_validation_ns",
+        "shared_buffer_reset_ns",
+    )
+    observed_phase_ns = {
+        name: int(phase_metrics[name]) for name in projectable_phases
+    }
+    projected_phase_seconds = {
+        name: value * linear_scale_round_factor / 1_000_000_000
+        for name, value in observed_phase_ns.items()
+    }
+    planned_timed = int(
+        config.protocol["final_execution"]["planned_timed_executions"]
+    )
+    mean_duration = statistics.fmean(durations)
+    query_only_seconds = mean_duration * planned_timed / 1_000_000_000
+
+    current_timed_bytes = (run_dir / "executions.jsonl").stat().st_size
+    current_warmup_bytes = (run_dir / "warmups.jsonl").stat().st_size
+    current_ground_truth_bytes = (run_dir / "ground_truth.jsonl").stat().st_size
+    current_plan_bytes = sum(
+        path.stat().st_size for path in (run_dir / "plans").glob("*.json")
+    )
+    current_variable_bytes = (
+        current_timed_bytes
+        + current_warmup_bytes
+        + current_ground_truth_bytes
+        + current_plan_bytes
+    )
+    current_fixed_bytes = max(0, directory_size(run_dir) - current_variable_bytes)
+    final_scale_rounds = len(final_scales) * final_rounds
+    final_warmups = (
+        final_scale_rounds
+        * len(config.methods)
+        * len(config.filters)
+        * int(
+            config.protocol["final_execution"][
+                "warmup_queries_per_method_filter_block"
+            ]
+        )
+    )
+    final_ground_truth_records = (
+        final_scale_rounds
+        * int(config.protocol["ground_truth"]["query_count_per_scale"])
+        * len(config.filters)
+    )
+    final_plan_count = final_scale_rounds * len(config.methods) * len(config.filters)
+    warmup_projection_seconds = mean_duration * final_warmups / 1_000_000_000
+    observed_other_overhead_ns = max(
+        0,
+        int(phase_metrics["total_before_final_artifacts_ns"])
+        - sum(observed_phase_ns.values())
+        - int(phase_metrics["timed_workload_and_warmups_ns"]),
+    )
+    other_overhead_projection_seconds = (
+        observed_other_overhead_ns * final_scale_rounds / 1_000_000_000
+    )
+
+    def scaled_bytes(observed_bytes: int, observed_count: int, target_count: int) -> int:
+        return int(round(observed_bytes / observed_count * target_count))
+
+    estimated_artifact_bytes = (
+        scaled_bytes(current_timed_bytes, len(execution_rows), planned_timed)
+        + scaled_bytes(
+            current_warmup_bytes,
+            len(config.methods)
+            * len(config.filters)
+            * config.warmup_query_count
+            * config.rounds,
+            final_warmups,
+        )
+        + scaled_bytes(
+            current_ground_truth_bytes,
+            int(config.stage["expected_ground_truth_combinations"]),
+            final_ground_truth_records,
+        )
+        + scaled_bytes(
+            current_plan_bytes,
+            len(config.methods) * len(config.filters),
+            final_plan_count,
+        )
+        + current_fixed_bytes * final_scale_rounds
+    )
+
+    observed_relation_bytes = sum(int(row["relation_bytes"]) for row in relation_sizes)
+    return {
+        "projection_kind": "mechanical qualification planning estimate",
+        "basis_stage": config.stage["stage_id"],
+        "basis_scale_rows": config.scale_rows,
+        "final_scales": final_scales,
+        "final_rounds": final_rounds,
+        "linear_scale_round_factor": linear_scale_round_factor,
+        "observed_phase_ns": observed_phase_ns,
+        "linearly_projected_phase_seconds": projected_phase_seconds,
+        "query_latency_ns": {
+            "minimum": min(durations),
+            "mean": mean_duration,
+            "maximum": max(durations),
+        },
+        "eventual_timed_execution_count": planned_timed,
+        "query_only_projection_seconds_at_observed_scale": query_only_seconds,
+        "warmup_projection_seconds_at_observed_scale": warmup_projection_seconds,
+        "other_per_scale_round_overhead_projection_seconds": (
+            other_overhead_projection_seconds
+        ),
+        "estimated_full_pipeline_seconds": sum(projected_phase_seconds.values())
+        + query_only_seconds
+        + warmup_projection_seconds
+        + other_overhead_projection_seconds,
+        "observed_relation_bytes": observed_relation_bytes,
+        "estimated_1m_relation_bytes_linear": int(
+            round(observed_relation_bytes * 1_000_000 / config.scale_rows)
+        ),
+        "observed_run_directory_bytes": directory_size(run_dir),
+        "estimated_full_matrix_artifact_bytes": estimated_artifact_bytes,
+        "artifact_projection_counts": {
+            "timed_executions": planned_timed,
+            "warmups": final_warmups,
+            "ground_truth_records": final_ground_truth_records,
+            "plans": final_plan_count,
+            "scale_rounds": final_scale_rounds,
+        },
+        "limitations": [
+            "phase times and relation bytes are scaled linearly with row count",
+            "HNSW construction and query latency need not scale linearly",
+            "query projection holds the observed qualification latency distribution fixed",
+            "thermal drift, OS-cache state, and cross-round variation are not modeled",
+            "estimate is for launch planning, not a bound or research measurement",
+        ],
+    }
+
+
+def prepared_statement_evidence(connections: dict[str, Any], filter_count: int) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for method, connection in connections.items():
         with connection.cursor() as cursor:
@@ -250,31 +445,61 @@ def prepared_statement_evidence(connections: dict[str, Any]) -> dict[str, Any]:
                 if "milestone2.sift_" in str(row[1])
             ]
         unique_search_statements = {row["statement"] for row in rows}
-        if len(unique_search_statements) != 5:
+        if len(unique_search_statements) != filter_count:
             raise AssertionError(
-                f"{method} has {len(unique_search_statements)} prepared search statements, expected 5"
+                f"{method} has {len(unique_search_statements)} prepared search statements, expected {filter_count}"
             )
+        if any(row["parameter_types"] != "{vector}" or row["custom_plans"] != 0 for row in rows):
+            raise AssertionError(f"{method} must use one vector parameter and generic prepared plans")
         result[method] = rows
     return result
 
 
 def energy_mode() -> dict[str, Any]:
-    completed = subprocess.run(
-        ["pmset", "-g", "custom"], text=True, capture_output=True, check=False
+    try:
+        battery = subprocess.run(
+            ["pmset", "-g", "batt"], text=True, capture_output=True, check=False
+        )
+        custom = subprocess.run(
+            ["pmset", "-g", "custom"], text=True, capture_output=True, check=False
+        )
+    except OSError as error:
+        confirmed = os.environ.get("M2_AC_POWER_CONFIRMED") == "1"
+        return {
+            "detection_method": "explicit M2_AC_POWER_CONFIRMED=1 fallback",
+            "ac_power_detected": confirmed,
+            "error": f"{type(error).__name__}: {error}",
+            "ac_power_required_by_protocol": True,
+        }
+    ac_power_detected = (
+        battery.returncode == 0 and "Now drawing from 'AC Power'" in battery.stdout
     )
     return {
-        "command": "pmset -g custom",
-        "returncode": completed.returncode,
-        "stdout": completed.stdout,
-        "stderr": completed.stderr,
+        "detection_method": "pmset -g batt",
+        "ac_power_detected": ac_power_detected,
+        "battery_command": "pmset -g batt",
+        "battery_returncode": battery.returncode,
+        "battery_stdout": battery.stdout,
+        "battery_stderr": battery.stderr,
+        "energy_settings_command": "pmset -g custom",
+        "energy_settings_returncode": custom.returncode,
+        "energy_settings_stdout": custom.stdout,
+        "energy_settings_stderr": custom.stderr,
         "ac_power_required_by_protocol": True,
-        "operator_confirmation": "not machine-verifiable by the harness",
     }
+
+
+def verify_power_state(before: dict[str, Any], after: dict[str, Any]) -> None:
+    if not before.get("ac_power_detected") or not after.get("ac_power_detected"):
+        raise AssertionError("AC power was not present at both run boundaries")
+    if before.get("energy_settings_stdout") != after.get("energy_settings_stdout"):
+        raise AssertionError("power settings changed during the run")
 
 
 def run_stage(config_path: Path, dataset_path: Path) -> Path:
     config = load_config(config_path)
     before_run_git = git_state()
+    require_clean_git_state(before_run_git)
     run_dir = create_run_directory(config.config_sha256)
     run_id = run_dir.name
     log = RunLog(run_dir / "run.log")
@@ -292,6 +517,9 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
 
         milestone1 = verify_milestone1_preserved()
         source_manifest = json.loads(SOURCE_MANIFEST_PATH.read_text(encoding="utf-8"))
+        source_manifest_validation = validate_source_manifest_identity(
+            source_manifest, config.protocol["dataset"]
+        )
         write_json_exclusive(run_dir / "config.json", config.combined)
         write_json_exclusive(
             run_dir / "run_manifest.json",
@@ -308,13 +536,23 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
             },
         )
 
+        last_phase = "power_state_validation"
+        power_at_start = energy_mode()
+        write_json_exclusive(run_dir / "power_state.json", power_at_start)
+        if not power_at_start["ac_power_detected"]:
+            raise AssertionError(
+                "AC power is required by the frozen protocol; connect power or explicitly "
+                "confirm a non-macOS host with M2_AC_POWER_CONFIRMED=1"
+            )
+
         last_phase = "dataset_validation"
         log.write(f"validating SIFT1M artifact {dataset_path}")
         dataset_manifest = validate_hdf5(
-            dataset_path, expected_sha256=str(source_manifest["sha256"])
+            dataset_path,
+            expected_sha256=str(config.protocol["dataset"]["expected_sha256"]),
         )
-        if dataset_manifest["byte_size"] != int(source_manifest["byte_size"]):
-            raise AssertionError("SIFT1M byte size does not match source manifest")
+        if dataset_manifest["byte_size"] != int(config.protocol["dataset"]["expected_bytes"]):
+            raise AssertionError("SIFT1M byte size does not match the frozen protocol")
         acquisition = (
             json.loads(LOCAL_MANIFEST_PATH.read_text(encoding="utf-8"))
             if LOCAL_MANIFEST_PATH.exists()
@@ -323,6 +561,7 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
         dataset_manifest.update(
             {
                 "canonical_source": source_manifest,
+                "source_manifest_identity_validation": source_manifest_validation,
                 "local_acquisition": acquisition,
                 "full_scale_supplied_neighbor_validation": "deferred until authorized 1M stage",
             }
@@ -331,7 +570,14 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
 
         last_phase = "deterministic_selection"
         log.write("constructing/reusing global one-million-ID SHA-256 scale order")
-        global_order, order_manifest = ensure_scale_order()
+        scale_assignment = config.protocol["scale_assignment"]
+        global_order, order_manifest = ensure_scale_order(
+            base_count=int(scale_assignment["base_count"]),
+            expected_ordered_ids_sha256=str(
+                scale_assignment["expected_ordered_ids_sha256"]
+            ),
+            expected_cache_sha256=str(scale_assignment["expected_cache_sha256"]),
+        )
         scale_manifest = build_scale_manifest(global_order, config.scale_rows, config.filters)
         serial_scale = {
             **serializable_scale_manifest(scale_manifest),
@@ -384,11 +630,15 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
             or versions["pgvector_version"] != config.protocol["pgvector_version"]
         ):
             raise AssertionError(f"database version mismatch: {versions}")
+        host_at_start = host_environment()
+        resource_snapshots = [
+            {"phase": "before_database_load", "host": host_at_start}
+        ]
         write_json_exclusive(
             run_dir / "environment.json",
             {
                 "captured_at": datetime.now(timezone.utc).isoformat(),
-                "host": host_environment(),
+                "host": host_at_start,
                 "database_versions": versions,
                 "database_connection": {
                     "host": os.environ.get("PGHOST", "127.0.0.1"),
@@ -405,11 +655,19 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                 base_ids=scale_manifest["selected_base_ids"],
                 vectors=scale_vectors,
                 buckets=scale_manifest["filter_buckets"],
+                hnsw_build_settings=config.protocol["hnsw"],
             )
         )
         evidence = database_evidence(
             preparation, scale_rows=config.scale_rows, thresholds=config.filters
         )
+        source_checksum = source_stream_checksum(
+            scale_manifest["selected_base_ids"], scale_vectors, scale_manifest["filter_buckets"]
+        )
+        if source_checksum != evidence["ordered_vector_stream_sha256"]:
+            raise AssertionError("loaded IDs/ranks/buckets/vectors differ from the canonical SIFT source")
+        evidence["source_vector_stream_sha256"] = source_checksum
+        evidence["all_source_rows_equal"] = True
         sample_validation = validate_source_samples(
             preparation,
             base_ids=scale_manifest["selected_base_ids"],
@@ -420,6 +678,9 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
         write_json_exclusive(run_dir / "relation_sizes.json", evidence["relation_sizes"])
         write_json_exclusive(run_dir / "source_vector_samples.json", sample_validation)
         write_json_exclusive(run_dir / "postgres_settings.json", postgres_settings(preparation))
+        resource_snapshots.append(
+            {"phase": "after_database_load_and_indexes", "host": host_environment()}
+        )
 
         last_phase = "ground_truth"
         configure_method_connection(preparation, "exact")
@@ -492,6 +753,9 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
         write_json_exclusive(
             run_dir / "ground_truth_validation.json", independent_validation
         )
+        resource_snapshots.append(
+            {"phase": "after_ground_truth_validation", "host": host_environment()}
+        )
 
         last_phase = "shared_buffer_reset"
         log.write(
@@ -557,13 +821,15 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
         sequence_index = 0
         workload_started = time.perf_counter_ns()
         for block in schedule["blocks"]:
+            round_number = int(block["round"])
             method = str(block["method"])
             threshold = int(block["filter_threshold"])
             sql = search_sql(method, threshold, config.k)
             sql_sha256 = hashlib.sha256(sql.encode("utf-8")).hexdigest()
             connection = connections[method]
             log.write(
-                f"block {block['block_index']}/15 method={method} filter={threshold}: "
+                f"block {block['block_index']}/{len(schedule['blocks'])} "
+                f"round={round_number} method={method} filter={threshold}: "
                 f"{config.warmup_query_count} warm-ups, {config.repetitions} timed rounds"
             )
             with connection.cursor() as cursor:
@@ -591,10 +857,15 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                             "schema_version": 1,
                             "run_id": run_id,
                             "block_index": block["block_index"],
+                            "round": round_number,
+                            "scale_rows": config.scale_rows,
+                            "build_id": f"{run_id}-round-{round_number}-build-1",
                             "method": method,
                             "filter_threshold": threshold,
                             "query_id": int(query_id),
                             "backend_pid": backend_pids[method],
+                            "result_ids": [row[0] for row in rows],
+                            "distances": [row[1] for row in rows],
                             **validation,
                         }
                     )
@@ -650,8 +921,9 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                             "stage_id": config.stage["stage_id"],
                             "sequence_index": sequence_index,
                             "block_index": block["block_index"],
+                            "round": round_number,
                             "scale_rows": config.scale_rows,
-                            "build_id": f"{run_id}-build-1",
+                            "build_id": f"{run_id}-round-{round_number}-build-1",
                             "method": method,
                             "filter_threshold": threshold,
                             "target_selectivity": threshold / 100,
@@ -678,10 +950,13 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                         block_buffer.append(row)
                     execution_rows.extend(block_buffer)
         phase_metrics["timed_workload_and_warmups_ns"] = time.perf_counter_ns() - workload_started
+        resource_snapshots.append(
+            {"phase": "after_timed_workload", "host": host_environment()}
+        )
 
         write_jsonl_exclusive(run_dir / "warmups.jsonl", warmup_records)
         write_jsonl_exclusive(run_dir / "executions.jsonl", execution_rows)
-        prepared_evidence = prepared_statement_evidence(connections)
+        prepared_evidence = prepared_statement_evidence(connections, len(config.filters))
         write_json_exclusive(run_dir / "prepared_statements.json", prepared_evidence)
 
         for connection in list(open_connections):
@@ -689,8 +964,10 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
             open_connections.remove(connection)
 
         last_phase = "final_validation"
+        final_validation_started = time.perf_counter_ns()
         expected_keys = {
-            (method, threshold, query_id, repetition)
+            (round_number, method, threshold, query_id, repetition)
+            for round_number in range(1, config.rounds + 1)
             for method in config.methods
             for threshold in config.filters
             for query_id in timed_query_ids
@@ -698,6 +975,7 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
         }
         observed_keys = {
             (
+                int(row["round"]),
                 str(row["method"]),
                 int(row["filter_threshold"]),
                 int(row["query_id"]),
@@ -732,37 +1010,66 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                 f"execution validation failed: errors={len(errors)}, "
                 f"invalid_results={len(invalid_results)}, invalid_exact={len(invalid_exact)}"
             )
-        if len(warmup_records) != len(config.methods) * len(config.filters) * config.warmup_query_count:
+        if len(warmup_records) != (
+            config.rounds
+            * len(config.methods)
+            * len(config.filters)
+            * config.warmup_query_count
+        ):
             raise AssertionError("warm-up execution matrix is incomplete")
 
         summaries = summarize_executions(execution_rows)
         write_json_exclusive(run_dir / "summary.json", summaries)
+        phase_metrics["final_validation_ns"] = (
+            time.perf_counter_ns() - final_validation_started
+        )
         phase_metrics["total_before_final_artifacts_ns"] = time.perf_counter_ns() - total_started
         write_json_exclusive(run_dir / "phase_metrics.json", phase_metrics)
 
-        successful_durations = [int(row["duration_ns"]) for row in execution_rows]
-        mean_duration = statistics.fmean(successful_durations)
-        projection = {
-            "basis_stage": config.stage["stage_id"],
-            "qualification_mean_query_latency_ns": mean_duration,
-            "eventual_timed_execution_count": int(
-                config.protocol["final_execution"]["planned_timed_executions"]
-            ),
-            "query_only_projection_seconds_at_observed_scale": mean_duration
-            * int(config.protocol["final_execution"]["planned_timed_executions"])
-            / 1_000_000_000,
-            "warning": (
-                "Mechanical query-only extrapolation at the qualification scale; it does not "
-                "model latency growth at 250k/500k/1M, repeated loads/builds, or thermal drift."
-            ),
-        }
+        projection = build_resource_projection(
+            config,
+            phase_metrics,
+            execution_rows,
+            evidence["relation_sizes"],
+            run_dir,
+        )
+        host_after = host_environment()
+        resource_snapshots.append({"phase": "after_final_validation", "host": host_after})
         resources = {
-            "host_after": host_environment(),
-            "energy_mode": energy_mode(),
+            "host_at_start": host_at_start,
+            "host_after": host_after,
+            "phase_snapshots": resource_snapshots,
+            "minimum_observed_memory_available_bytes": min(
+                int(snapshot["host"]["memory_available_bytes"])
+                for snapshot in resource_snapshots
+            ),
+            "maximum_observed_memory_pressure_from_start_bytes": max(
+                0,
+                int(host_at_start["memory_available_bytes"])
+                - min(
+                    int(snapshot["host"]["memory_available_bytes"])
+                    for snapshot in resource_snapshots
+                ),
+            ),
+            "minimum_observed_disk_free_bytes": min(
+                int(snapshot["host"]["disk_free_bytes"])
+                for snapshot in resource_snapshots
+            ),
+            "memory_available_change_bytes": (
+                int(host_after["memory_available_bytes"])
+                - int(host_at_start["memory_available_bytes"])
+            ),
+            "disk_free_change_bytes": (
+                int(host_after["disk_free_bytes"])
+                - int(host_at_start["disk_free_bytes"])
+            ),
+            "energy_mode_at_start": power_at_start,
+            "energy_mode_after": energy_mode(),
             "run_directory_bytes_before_resource_artifact": directory_size(run_dir),
             "projection": projection,
         }
         write_json_exclusive(run_dir / "resource_observations.json", resources)
+        verify_power_state(power_at_start, resources["energy_mode_after"])
 
         validation_report = {
             "schema_version": 1,
@@ -796,7 +1103,7 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
         }
         write_json_exclusive(run_dir / "validation_report.json", validation_report)
         log.write("all hard qualification gates passed; finalizing checksums")
-        log.close()
+        log.sync()
         finalize_complete(
             run_dir,
             {
@@ -810,6 +1117,7 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                 "research_conclusion_authorized": False,
             },
         )
+        log.close()
         print(run_dir)
         return run_dir
     except BaseException as error:

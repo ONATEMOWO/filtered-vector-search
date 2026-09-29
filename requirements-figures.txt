@@ -1,0 +1,2 @@
+# Optional: static qualification figures, outside database timing.
+matplotlib==3.10.0

@@ -38,7 +38,7 @@ SELECT id,
        embedding <-> $1 AS distance
 FROM milestone2.sift_hnsw
 WHERE filter_bucket < 50
-ORDER BY embedding <-> $1
+ORDER BY distance
 LIMIT 10;
 
 -- Strict-order iterative HNSW settings for a separate persistent connection.
@@ -56,7 +56,7 @@ SELECT id,
        embedding <-> $1 AS distance
 FROM milestone2.sift_hnsw
 WHERE filter_bucket < 50
-ORDER BY embedding <-> $1
+ORDER BY distance
 LIMIT 10;
 
 -- Plan evidence is collected outside benchmark timing. Supply an actual vector

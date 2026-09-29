@@ -49,6 +49,11 @@ def make_ground_truth_record(
     record: dict[str, Any] = {
         "schema_version": 1,
         "run_id": run_id,
+        "generation_method": (
+            "PostgreSQL exact filtered L2 search on milestone2.sift_exact "
+            "with no vector index"
+        ),
+        "generation_sql": ground_truth_sql(threshold, k),
         "dataset_sha256": dataset_sha256,
         "scale_manifest_sha256": scale_manifest_sha256,
         "scale_rows": scale_rows,
@@ -123,14 +128,44 @@ def ground_truth_index(records: Iterable[dict[str, Any]]) -> dict[tuple[int, int
 def select_validation_keys(
     query_ids: Iterable[int], thresholds: Iterable[int], count: int
 ) -> list[tuple[int, int]]:
-    keys = [(int(query_id), int(threshold)) for query_id in query_ids for threshold in thresholds]
-    keys.sort(
-        key=lambda value: (
-            hashlib.sha256(f"sift-gt-validation-v1|{value[0]}|{value[1]}".encode()).digest(),
-            value,
+    queries = [int(query_id) for query_id in query_ids]
+    filters = [int(threshold) for threshold in thresholds]
+    if count < 0:
+        raise ValueError("validation count cannot be negative")
+    if len(queries) != len(set(queries)) or len(filters) != len(set(filters)):
+        raise ValueError("validation queries and thresholds must be unique")
+    if count > len(queries) * len(filters):
+        raise ValueError("validation count exceeds the available combinations")
+
+    # Round-robin across independently hashed per-filter query orders. A sample
+    # of at least one key per filter is therefore explicitly stratified.
+    candidates: dict[int, list[tuple[int, int]]] = {}
+    for threshold in filters:
+        keys = [(query_id, threshold) for query_id in queries]
+        keys.sort(
+            key=lambda value: (
+                hashlib.sha256(
+                    f"sift-gt-validation-v1|{value[0]}|{value[1]}".encode("utf-8")
+                ).digest(),
+                value,
+            )
         )
-    )
-    return keys[:count]
+        candidates[threshold] = keys
+
+    selected: list[tuple[int, int]] = []
+    depth = 0
+    while len(selected) < count:
+        made_progress = False
+        for threshold in filters:
+            if depth < len(candidates[threshold]):
+                selected.append(candidates[threshold][depth])
+                made_progress = True
+                if len(selected) == count:
+                    break
+        if not made_progress:
+            break
+        depth += 1
+    return selected
 
 
 def validate_ground_truth_numpy(

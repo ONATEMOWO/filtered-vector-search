@@ -52,6 +52,11 @@
     "input_template": "sift-base-v1|{base_id}",
     "encoding": "utf-8",
     "sort_tiebreaker": "base_id",
+    "base_count": 1000000,
+    "ordered_ids_serialization": "little-endian int32",
+    "expected_ordered_ids_sha256": "5fff299d2950d88779871ffa4b21660c51d295c44f09ffbee82bac7f164b1fc9",
+    "cache_format": "NumPy .npy int32",
+    "expected_cache_sha256": "73913a6dc24c281c58e222bcd1f277fdd45ff48faa37bf511bad1a842490184e",
     "rank_origin": 0,
     "filter_bucket_expression": "scale_rank % 100"
   },
@@ -78,6 +83,8 @@
     "ef_construction": 64,
     "ef_search": 40,
     "work_mem": "64MB",
+    "build_maintenance_work_mem": "1GB",
+    "build_max_parallel_maintenance_workers": 0,
     "standard_iterative_scan": "off",
     "iterative_scan": "strict_order",
     "max_scan_tuples": 20000,
@@ -86,7 +93,6 @@
   "session": {
     "jit": "off",
     "statement_timeout": "120s",
-    "plan_cache_mode": "force_generic_plan",
     "plan_cache_mode": "force_generic_plan",
     "hnsw_enable_seqscan": "off",
     "hnsw_enable_bitmapscan": "off",

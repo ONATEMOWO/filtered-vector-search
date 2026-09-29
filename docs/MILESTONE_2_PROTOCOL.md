@@ -108,6 +108,14 @@ in this global ordering. The base rows at scale `N` are exactly those with
 `scale_rank < N`. The resulting rank/ID manifest is checksummed and reused; it
 must not be recomputed from an already truncated input.
 
+The canonical one-million-ID order is pinned independently of its cache
+container. Its little-endian int32 payload SHA-256 is
+`5fff299d2950d88779871ffa4b21660c51d295c44f09ffbee82bac7f164b1fc9`.
+With the pinned NumPy runtime, the `.npy` cache SHA-256 is
+`73913a6dc24c281c58e222bcd1f277fdd45ff48faa37bf511bad1a842490184e`.
+The loader verifies both digests, dtype, shape, complete `0..999999` range,
+and permutation uniqueness before selecting any physical scale.
+
 Controlled metadata is:
 
 ```text
@@ -226,7 +234,8 @@ There is one prepared statement per literal filter threshold, so exact planner
 selectivity is not hidden behind a filter parameter.
 `plan_cache_mode=force_generic_plan` is fixed for all method connections; the
 only bound value is the query vector, which does not alter the declared filter
-selectivity. Statement preparation occurs during warm-up, outside timing.
+selectivity. Statement preparation occurs during the pre-warm-up plan audit,
+outside timing, and the same statements are reused during warm-up and timing.
 
 ### Realistic exact filtered search
 
@@ -250,9 +259,13 @@ SELECT id,
        embedding <-> $1::vector AS distance
 FROM milestone2.sift_hnsw
 WHERE filter_bucket < <literal-threshold>
-ORDER BY embedding <-> $1::vector
+ORDER BY distance
 LIMIT 10;
 ```
+
+Using the output alias keeps a single server parameter and PostgreSQL expands
+the alias to the indexed distance expression during planning. Qualification
+rejects the run unless the resulting plan uses the required HNSW index order.
 
 Settings on its dedicated connection are:
 
@@ -284,7 +297,12 @@ The HNSW index is constructed with:
 operator class = vector_l2_ops
 m = 16
 ef_construction = 64
+maintenance_work_mem = 1GB
+max_parallel_maintenance_workers = 0
 ```
+
+The last two settings make qualification build conditions explicit and are
+captured from the build session; they do not change the HNSW graph parameters.
 
 There is no HNSW parameter sweep. JIT is disabled consistently for all three
 method connections. A 120-second statement timeout is applied and any timeout
@@ -377,6 +395,12 @@ EXPLAIN (
 
 The same connection also records explicit `current_setting(...)` values for
 every relevant GUC.
+
+The audit uses `EXPLAIN ... EXECUTE` on the actual driver-prepared generic
+statement, not a separately planned copy of its SQL. Each artifact records
+the prepared statement's SQL, one-vector parameter type, and generic/custom
+plan counters before and after EXPLAIN. The generic counter must advance by
+one and the custom counter must remain zero.
 
 For exact search, validation proves that `milestone2.sift_exact` has no vector index and
 preserves whichever exact plan PostgreSQL naturally chooses. For both HNSW

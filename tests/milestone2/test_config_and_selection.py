@@ -1,19 +1,27 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 
-from experiments.milestone2.config import load_config, validate_config
+from experiments.milestone2.config import load_config, read_json, validate_config
 from experiments.milestone2.dataset import (
     QUERY_DOMAIN,
     SCALE_DOMAIN,
     build_scale_manifest,
     deterministic_id_order,
+    ensure_scale_order,
     select_query_ids,
+    validate_source_manifest_identity,
 )
+from experiments.milestone2 import dataset
+from experiments.milestone2.runner import build_schedule
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -66,20 +74,40 @@ class ConfigurationTests(unittest.TestCase):
             self.assertEqual(config.warmup_query_count, 20)
             self.assertFalse(config.stage["full_benchmark_authorized"])
 
+    def test_schedule_identity_includes_protocol_stage_round_and_scale(self) -> None:
+        schedule = build_schedule(self.qualification, [7, 8, 9])
+        self.assertEqual(schedule["protocol_id"], "milestone-2-sift1m-v1")
+        self.assertEqual(schedule["stage_id"], "qualification-100k")
+        self.assertEqual(schedule["scale_rows"], 100_000)
+        self.assertEqual(schedule["rounds"], 1)
+        self.assertEqual(len(schedule["blocks"]), 15)
+        for block in schedule["blocks"]:
+            domain = block["block_schedule_domain"]
+            self.assertIn("milestone-2-sift1m-v1", domain)
+            self.assertIn("qualification-100k", domain)
+            self.assertIn("|1|100000", domain)
+            self.assertEqual(block["round"], 1)
+            self.assertEqual(block["scale_rows"], 100_000)
+
     def test_config_rejects_expensive_or_unaccepted_stage_changes(self) -> None:
         protocol = self.preflight.protocol
         mutations = (
             {"scale_rows": 100_000},
             {"scale_rows": 250_000},
             {"timed_query_count": 0},
+            {"timed_query_count": 4},
             {"timed_query_count": 21},
             {"repetitions": 0},
+            {"repetitions": 2},
             {"repetitions": 3},
             {"rounds": 2},
             {"full_benchmark_authorized": True},
             {"ground_truth_query_count": 199},
             {"warmup_query_count": 19},
             {"independent_validation_count": 19},
+            {"independent_validation_count": 21},
+            {"stop_after_stage": False},
+            {"record_resource_projection": False},
         )
         for mutation in mutations:
             with self.subTest(mutation=mutation):
@@ -93,6 +121,13 @@ class ConfigurationTests(unittest.TestCase):
         protocol["k"] = 20
         with self.assertRaises(ValueError):
             validate_config(protocol, self.preflight.stage)
+
+    def test_json_loader_rejects_duplicate_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"session":{"mode":"a","mode":"b"}}', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
+                read_json(path)
 
 
 class DeterministicSelectionTests(unittest.TestCase):
@@ -150,6 +185,51 @@ class DeterministicSelectionTests(unittest.TestCase):
             deterministic_id_order(0, SCALE_DOMAIN)
         with self.assertRaises(ValueError):
             select_query_ids(query_count=10, measured_count=8, warmup_count=3)
+
+    def test_cached_scale_order_is_digest_and_permutation_checked(self) -> None:
+        expected_order = deterministic_id_order(10, SCALE_DOMAIN)
+        expected_ids_sha = hashlib.sha256(
+            expected_order.astype("<i4", copy=False).tobytes()
+        ).hexdigest()
+        with tempfile.TemporaryDirectory() as directory, patch.object(
+            dataset, "GENERATED_DIR", Path(directory)
+        ), patch.object(dataset, "ROOT", Path(directory)):
+            first, manifest = ensure_scale_order(
+                10, expected_ordered_ids_sha256=expected_ids_sha
+            )
+            np.testing.assert_array_equal(first, expected_order)
+            second, _ = ensure_scale_order(
+                10,
+                expected_ordered_ids_sha256=expected_ids_sha,
+                expected_cache_sha256=manifest["cache_sha256"],
+            )
+            np.testing.assert_array_equal(second, expected_order)
+            cache_path = Path(directory) / "scale_order_10.npy"
+            altered = expected_order.copy()
+            altered[[0, 1]] = altered[[1, 0]]
+            with cache_path.open("wb") as handle:
+                np.save(handle, altered, allow_pickle=False)
+            with self.assertRaisesRegex(ValueError, "checksum mismatch"):
+                ensure_scale_order(
+                    10,
+                    expected_ordered_ids_sha256=expected_ids_sha,
+                    expected_cache_sha256=manifest["cache_sha256"],
+                )
+
+    def test_source_manifest_matches_frozen_protocol(self) -> None:
+        protocol = load_config(CONFIG_DIR / "preflight-10k.json").protocol
+        source = json.loads(
+            (ROOT / "data" / "sift1m" / "source_manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertTrue(
+            validate_source_manifest_identity(source, protocol["dataset"])["passed"]
+        )
+        changed = copy.deepcopy(source)
+        changed["sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            validate_source_manifest_identity(changed, protocol["dataset"])
 
 
 if __name__ == "__main__":

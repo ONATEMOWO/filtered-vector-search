@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
@@ -62,7 +63,7 @@ def validate_returned_results(
     filter_valid = scale_valid and all(
         selected_buckets[int(value)] < threshold for value in ids
     )
-    distance_order_valid = all(
+    distance_order_valid = all(math.isfinite(float(value)) and float(value) >= 0 for value in distances) and all(
         float(distances[index]) <= float(distances[index + 1]) + 1e-12
         for index in range(len(distances) - 1)
     )

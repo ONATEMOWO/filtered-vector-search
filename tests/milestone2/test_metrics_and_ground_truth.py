@@ -111,6 +111,11 @@ class GroundTruthTests(unittest.TestCase):
         self.assertEqual(record["strictly_closer_ids"], [11])
         self.assertEqual(record["boundary_tie_ids"], [12, 13, 14])
         self.assertEqual(record["all_with_ties_ids"], [11, 12, 13, 14])
+        self.assertEqual(
+            record["generation_method"],
+            "PostgreSQL exact filtered L2 search on milestone2.sift_exact with no vector index",
+        )
+        self.assertEqual(record["generation_sql"], ground_truth_sql(50, 3))
 
     def test_ground_truth_sql_uses_distance_only_for_with_ties(self) -> None:
         statement = ground_truth_sql(5, 10)
@@ -151,6 +156,16 @@ class GroundTruthTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(len(first), 20)
         self.assertEqual(len(set(first)), 20)
+        counts = {threshold: 0 for threshold in (50, 20, 10, 5, 1)}
+        for _, threshold in first:
+            counts[threshold] += 1
+        self.assertEqual(set(counts.values()), {4})
+
+    def test_validation_key_selection_rejects_invalid_counts(self) -> None:
+        with self.assertRaisesRegex(ValueError, "negative"):
+            select_validation_keys(range(2), [50], -1)
+        with self.assertRaisesRegex(ValueError, "exceeds"):
+            select_validation_keys(range(2), [50], 3)
 
 
 if __name__ == "__main__":

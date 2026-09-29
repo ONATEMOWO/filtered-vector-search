@@ -1,0 +1,18 @@
+2026-09-29T16:58:40.569429+00:00 starting qualification-100k at scale=100000; expected timed executions=600
+2026-09-29T16:58:41.402852+00:00 validating SIFT1M artifact /Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/.runtime/datasets/sift-128-euclidean.hdf5
+2026-09-29T16:58:42.807376+00:00 constructing/reusing global one-million-ID SHA-256 scale order
+2026-09-29T16:58:42.917053+00:00 reading 100000 globally selected SIFT base vectors
+2026-09-29T16:58:43.181262+00:00 run invalid during database_load_and_index: OperationalError: connection is bad: connection to server at "127.0.0.1", port 55432 failed: Operation not permitted
+	Is the server running on that host and accepting TCP/IP connections?
+2026-09-29T16:58:43.188280+00:00 Traceback (most recent call last):
+  File "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/experiments/milestone2/runner.py", line 624, in run_stage
+    preparation = connect(application_name=f"m2-{config.stage['stage_id']}-prepare")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/experiments/milestone2/database.py", line 40, in connect
+    connection = psycopg.connect(
+                 ^^^^^^^^^^^^^^^^
+  File "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/.venv-milestone2/lib/python3.12/site-packages/psycopg/connection.py", line 118, in connect
+    raise last_ex.with_traceback(None)
+psycopg.OperationalError: connection is bad: connection to server at "127.0.0.1", port 55432 failed: Operation not permitted
+	Is the server running on that host and accepting TCP/IP connections?
+

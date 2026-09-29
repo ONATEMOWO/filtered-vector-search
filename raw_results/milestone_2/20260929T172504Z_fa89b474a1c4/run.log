@@ -1,0 +1,27 @@
+2026-09-29T17:25:04.198073+00:00 starting benchmark-100k-round-2 at scale=100000; expected timed executions=15000
+2026-09-29T17:25:04.842684+00:00 validating SIFT1M artifact /Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/.runtime/datasets/sift-128-euclidean.hdf5
+2026-09-29T17:25:05.866973+00:00 constructing/reusing global one-million-ID SHA-256 scale order
+2026-09-29T17:25:05.998730+00:00 reading 100000 globally selected SIFT base vectors
+2026-09-29T17:25:06.448777+00:00 loading exact/HNSW tables and building indexes
+2026-09-29T17:26:50.569534+00:00 generating 1,000 durable PostgreSQL exact ground-truth records
+2026-09-29T17:27:04.174511+00:00 re-executing all 1,000 exact ground-truth combinations for determinism
+2026-09-29T17:27:18.294640+00:00 Preparation is complete. Restart PostgreSQL from the project directory now: ./scripts/postgres_local.sh stop && ./scripts/postgres_local.sh start
+2026-09-29T17:27:18.295230+00:00 Waiting up to 900 seconds for a verified real PostgreSQL restart
+2026-09-29T17:28:19.677710+00:00 Verified newer PostgreSQL postmaster with the same cluster and physical graph
+2026-09-29T17:28:19.797996+00:00 capturing 15 untimed plan audits before the defined warm-up
+2026-09-29T17:28:23.188498+00:00 block 1/15 round=2 method=hnsw_standard filter=1: 20 warm-ups, 5 timed rounds
+2026-09-29T17:28:29.765110+00:00 block 2/15 round=2 method=exact filter=5: 20 warm-ups, 5 timed rounds
+2026-09-29T17:28:36.665429+00:00 block 3/15 round=2 method=hnsw_standard filter=20: 20 warm-ups, 5 timed rounds
+2026-09-29T17:28:38.775634+00:00 block 4/15 round=2 method=hnsw_iterative filter=1: 20 warm-ups, 5 timed rounds
+2026-09-29T17:28:57.599299+00:00 block 5/15 round=2 method=exact filter=20: 20 warm-ups, 5 timed rounds
+2026-09-29T17:29:14.291700+00:00 block 6/15 round=2 method=hnsw_standard filter=50: 20 warm-ups, 5 timed rounds
+2026-09-29T17:29:16.583172+00:00 block 7/15 round=2 method=hnsw_iterative filter=10: 20 warm-ups, 5 timed rounds
+2026-09-29T17:29:20.478273+00:00 block 8/15 round=2 method=hnsw_iterative filter=50: 20 warm-ups, 5 timed rounds
+2026-09-29T17:29:22.147733+00:00 block 9/15 round=2 method=hnsw_standard filter=10: 20 warm-ups, 5 timed rounds
+2026-09-29T17:29:23.743694+00:00 block 10/15 round=2 method=hnsw_iterative filter=20: 20 warm-ups, 5 timed rounds
+2026-09-29T17:29:26.060229+00:00 block 11/15 round=2 method=hnsw_iterative filter=5: 20 warm-ups, 5 timed rounds
+2026-09-29T17:29:31.292982+00:00 block 12/15 round=2 method=hnsw_standard filter=5: 20 warm-ups, 5 timed rounds
+2026-09-29T17:29:32.904598+00:00 block 13/15 round=2 method=exact filter=50: 20 warm-ups, 5 timed rounds
+2026-09-29T17:30:07.697772+00:00 block 14/15 round=2 method=exact filter=10: 20 warm-ups, 5 timed rounds
+2026-09-29T17:30:17.528980+00:00 block 15/15 round=2 method=exact filter=1: 20 warm-ups, 5 timed rounds
+2026-09-29T17:30:22.116891+00:00 all hard validation gates passed; finalizing checksums

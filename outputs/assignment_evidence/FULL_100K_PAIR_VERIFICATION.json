@@ -1,0 +1,122 @@
+{
+  "actual_restart_verified_each_round": true,
+  "campaign": "full-100k-only",
+  "dataset_sha256": "dd6f0a6ed6b7ebb8934680f861a33ed01ff33991eaee4fd60914d854a0ca5984",
+  "ground_truth_content_sha256_ignoring_run_identity": "b9675d8370d81b74785f549c612de194311063a598e4f793eafed87ad6f0ca1e",
+  "ground_truth_records_equal": 1000,
+  "identical_source_code_data_and_ground_truth": true,
+  "independent_round_verifications": [
+    {
+      "artifact_checksums_unchanged_after_verification": true,
+      "checksums_valid": true,
+      "deterministic_query_and_schedule_verified": true,
+      "ground_truth_records": 1000,
+      "independent_source_ground_truth_checks": 20,
+      "passed": true,
+      "plan_audits": 15,
+      "run_id": "20260929T171847Z_f9d4cdb50ba7",
+      "stage_id": "benchmark-100k-round-1",
+      "timed_executions": 15000,
+      "warmups": 300
+    },
+    {
+      "artifact_checksums_unchanged_after_verification": true,
+      "checksums_valid": true,
+      "deterministic_query_and_schedule_verified": true,
+      "ground_truth_records": 1000,
+      "independent_source_ground_truth_checks": 20,
+      "passed": true,
+      "plan_audits": 15,
+      "run_id": "20260929T172504Z_fa89b474a1c4",
+      "stage_id": "benchmark-100k-round-2",
+      "timed_executions": 15000,
+      "warmups": 300
+    }
+  ],
+  "larger_scales_executed": false,
+  "passed": true,
+  "physical_data_stream_sha256": "3ce8c350c501d1dc5267ffb44a1f11e276e2e80a22634d161df12f8c64e3b16e",
+  "physical_rebuild_evidence": [
+    {
+      "kind": "r",
+      "relation": "sift_exact",
+      "round_1_filenode": 24628,
+      "round_1_oid": 24628,
+      "round_2_filenode": 24656,
+      "round_2_oid": 24656
+    },
+    {
+      "kind": "i",
+      "relation": "sift_exact_filter_bucket_idx",
+      "round_1_filenode": 24648,
+      "round_1_oid": 24648,
+      "round_2_filenode": 24676,
+      "round_2_oid": 24676
+    },
+    {
+      "kind": "i",
+      "relation": "sift_exact_pkey",
+      "round_1_filenode": 24636,
+      "round_1_oid": 24636,
+      "round_2_filenode": 24664,
+      "round_2_oid": 24664
+    },
+    {
+      "kind": "r",
+      "relation": "sift_hnsw",
+      "round_1_filenode": 24638,
+      "round_1_oid": 24638,
+      "round_2_filenode": 24666,
+      "round_2_oid": 24666
+    },
+    {
+      "kind": "i",
+      "relation": "sift_hnsw_embedding_idx",
+      "round_1_filenode": 24649,
+      "round_1_oid": 24649,
+      "round_2_filenode": 24677,
+      "round_2_oid": 24677
+    },
+    {
+      "kind": "i",
+      "relation": "sift_hnsw_pkey",
+      "round_1_filenode": 24646,
+      "round_1_oid": 24646,
+      "round_2_filenode": 24674,
+      "round_2_oid": 24674
+    }
+  ],
+  "query_manifest_sha256": "b51d840c6121854cba0c8b63902bcc35681370bdba10726ec6050da90be98f0e",
+  "research_conclusions_authorized": false,
+  "run_ids": [
+    "20260929T171847Z_f9d4cdb50ba7",
+    "20260929T172504Z_fa89b474a1c4"
+  ],
+  "run_paths": [
+    "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/raw_results/milestone_2/20260929T171847Z_f9d4cdb50ba7",
+    "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/raw_results/milestone_2/20260929T172504Z_fa89b474a1c4"
+  ],
+  "schema_version": 1,
+  "source_artifact_hashes": [
+    {
+      "cache_reset.json": "ff14ffcd374642ab73e51c8a58562ea60db639407f2fb9a3dbc9d9e826151ba2",
+      "checksums.sha256": "68219d207b5df1ff0d548a2d336246e58f3d5cf9c2442faa49e35386d3e9484b",
+      "database_evidence.json": "14fd74ed37f10c18a004502c0de689f5fdea2eb7042113d968eb1f52c42ff5f7",
+      "ground_truth.jsonl": "f4956c8600ecef6f4d34e0c784b160430917cc6b3a5c31b4ca7c73e7e8763f10",
+      "run_id": "20260929T171847Z_f9d4cdb50ba7"
+    },
+    {
+      "cache_reset.json": "9547e7cc704b147c1ccb188d4fb56af1f444aec6fd3239aa0580e47f2bf5ec30",
+      "checksums.sha256": "2bae00f1c116f94090235d074daf23f8218b12fcdfcd9defdb3a2aefccc55093",
+      "database_evidence.json": "10ecd9802a604e526553a317c9e1d80b6226324a93f4c484f8e80000af61af16",
+      "ground_truth.jsonl": "6ff349100611147771c4f46681eaf6fc78cd646e0d766cd092f675d1f74c78bd",
+      "run_id": "20260929T172504Z_fa89b474a1c4"
+    }
+  ],
+  "source_blob_identity_sha256": "65a08e4594aaa4be16c2bb885c83144243088f80226b66673942a6b27d5ed410",
+  "source_commits": [
+    "3692827fda9989f8af2e598d170a16d0c34a5a77",
+    "e7952e5c1d8b22f5565945a24ef9259411d8f796"
+  ],
+  "total_timed_executions": 30000
+}

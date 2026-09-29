@@ -136,6 +136,24 @@ def independent_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return result
 
 
+def verify_summary(stored: list[dict[str, Any]], executions: list[dict[str, Any]]) -> None:
+    expected = independent_summary(executions)
+    if len(stored) != len(expected):
+        raise AssertionError("summary condition count differs from execution rows")
+    for actual, recomputed in zip(stored, expected, strict=True):
+        if actual.keys() != recomputed.keys():
+            raise AssertionError("summary fields differ from independent recomputation")
+        for name, value in recomputed.items():
+            if name == "p95_query_median_latency_ns":
+                # NumPy interpolates from the upper endpoint for fractions >= .5;
+                # our independent formula uses the lower endpoint. Floating-point
+                # roundoff followed by integer truncation can differ by one ns.
+                if type(actual[name]) is not int or abs(actual[name] - value) > 1:
+                    raise AssertionError("summary p95 differs beyond 1 ns interpolation tolerance")
+            elif actual[name] != value:
+                raise AssertionError(f"summary {name} differs from independent recomputation")
+
+
 def verify_run(run_dir: Path) -> dict[str, object]:
     required = {
         "config.json",
@@ -706,8 +724,7 @@ def verify_run(run_dir: Path) -> dict[str, object]:
         raise AssertionError("qualification shared-buffer reset evidence is invalid")
 
     stored_summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
-    if stored_summary != independent_summary(executions):
-        raise AssertionError("summary does not independently recompute from execution rows")
+    verify_summary(stored_summary, executions)
     phases = read_json(run_dir / "phase_metrics.json")
     for name in (
         "copy_exact_ns",

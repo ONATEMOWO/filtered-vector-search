@@ -14,6 +14,7 @@ from tests.milestone2.verify_run import (
     verify_query_selection,
     verify_result_fields,
     verify_source_distances,
+    verify_summary,
 )
 
 
@@ -97,6 +98,26 @@ class IndependentVerifierTests(unittest.TestCase):
         self.assertEqual(summary["mean_canonical_recall_at_10"], 0.5)
         self.assertEqual(summary["mean_tie_aware_recall_at_10"], 0.6)
         self.assertEqual(summary["returned_k_rate"], 0.25)
+
+    def test_summary_only_allows_one_ns_percentile_interpolation_difference(self) -> None:
+        rows = [{
+            "method": "hnsw_standard", "filter_threshold": 10,
+            "query_id": query_id, "duration_ns": latency,
+            "canonical_recall_at_10": 0.5, "tie_aware_recall_at_10": 0.5,
+            "returned_k": True, "error_type": None,
+        } for query_id, latency in enumerate([704489, 1217388, 1220000, 1225698, 2115690])]
+        summary = independent_summary(rows)
+        verify_summary(summary, rows)
+        changed = copy.deepcopy(summary)
+        changed[0]["p95_query_median_latency_ns"] += 1
+        verify_summary(changed, rows)
+        changed[0]["p95_query_median_latency_ns"] += 1
+        with self.assertRaisesRegex(AssertionError, "beyond 1 ns"):
+            verify_summary(changed, rows)
+        changed = copy.deepcopy(summary)
+        changed[0]["median_latency_ns"] += 1
+        with self.assertRaisesRegex(AssertionError, "median_latency_ns"):
+            verify_summary(changed, rows)
 
 
 if __name__ == "__main__":

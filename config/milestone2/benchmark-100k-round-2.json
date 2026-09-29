@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "protocol": "config/milestone2/protocol.json",
+  "protocol_id": "milestone-2-sift1m-v1",
+  "stage_id": "benchmark-100k-round-2",
+  "purpose": "standalone full 100k campaign; not final research conclusions or the multi-scale study",
+  "full_benchmark_authorized": true,
+  "larger_scales_authorized": false,
+  "campaign_id": "standalone-100k-v1",
+  "cache_reset_method": "postgresql_restart_required",
+  "experiment_round": 2,
+  "scale_rows": 100000,
+  "rounds": 1,
+  "rebuild_hnsw_each_round": true,
+  "ground_truth_query_count": 200,
+  "timed_query_count": 200,
+  "warmup_query_count": 20,
+  "repetitions": 5,
+  "independent_validation_count": 20,
+  "expected_filter_counts": {
+    "1": 1000,
+    "5": 5000,
+    "10": 10000,
+    "20": 20000,
+    "50": 50000
+  },
+  "expected_ground_truth_combinations": 1000,
+  "expected_timed_executions": 15000,
+  "record_resource_projection": true,
+  "stop_after_stage": true
+}

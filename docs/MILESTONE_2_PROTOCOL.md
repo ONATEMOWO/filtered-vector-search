@@ -2,6 +2,10 @@
 
 ## Status and change control
 
+Scoped 29 September update: `STANDALONE_100K_ADDENDUM.md` permits a separate
+full 100k-only campaign after qualification, following the user's resumed
+instruction. It does not enable the original complete multi-scale matrix.
+
 This document freezes the accepted Milestone 2 design for the filtered-vector
 search study. It is the methodological source of truth for the implementation.
 The implementation must not silently change any choice below. A necessary

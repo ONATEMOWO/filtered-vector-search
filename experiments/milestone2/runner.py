@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run one authorized Milestone 2 qualification stage and write immutable evidence."""
+"""Run one authorized Milestone 2 stage and write immutable evidence."""
 
 from __future__ import annotations
 
@@ -68,6 +68,7 @@ from .metrics import (
     validate_returned_results,
 )
 from .plans import audit_plan
+from .restart import capture_restart_identity, wait_for_restart
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -115,7 +116,7 @@ def git_state() -> dict[str, Any]:
 def require_clean_git_state(state: dict[str, Any]) -> None:
     if bool(state.get("dirty")) or state.get("status_porcelain"):
         raise RuntimeError(
-            "qualification runs require a clean committed Git state; commit source and "
+            "benchmark runs require a clean committed Git state; commit source and "
             "prior append-only artifacts before launching"
         )
 
@@ -158,7 +159,7 @@ def deterministic_order(domain: str, values: list[Any]) -> list[Any]:
 def build_schedule(config: BenchmarkConfig, timed_query_ids: list[int]) -> dict[str, Any]:
     blocks: list[dict[str, Any]] = []
     block_index = 0
-    for round_number in range(1, config.rounds + 1):
+    for round_number in config.round_numbers:
         block_domain = (
             f"m2-block-v1|{config.protocol['protocol_id']}|"
             f"{config.stage['stage_id']}|{round_number}|{config.scale_rows}"
@@ -344,7 +345,8 @@ def build_resource_projection(
         0,
         int(phase_metrics["total_before_final_artifacts_ns"])
         - sum(observed_phase_ns.values())
-        - int(phase_metrics["timed_workload_and_warmups_ns"]),
+        - int(phase_metrics["timed_workload_and_warmups_ns"])
+        - int(phase_metrics.get("restart_wait_ns", 0)),
     )
     other_overhead_projection_seconds = (
         observed_other_overhead_ns * final_scale_rounds / 1_000_000_000
@@ -385,6 +387,7 @@ def build_resource_projection(
         "final_rounds": final_rounds,
         "linear_scale_round_factor": linear_scale_round_factor,
         "observed_phase_ns": observed_phase_ns,
+        "excluded_operator_restart_wait_ns": int(phase_metrics.get("restart_wait_ns", 0)),
         "linearly_projected_phase_seconds": projected_phase_seconds,
         "query_latency_ns": {
             "minimum": min(durations),
@@ -420,6 +423,7 @@ def build_resource_projection(
             "query projection holds the observed qualification latency distribution fixed",
             "thermal drift, OS-cache state, and cross-round variation are not modeled",
             "estimate is for launch planning, not a bound or research measurement",
+            "operator restart wait is excluded from projected compute time",
         ],
     }
 
@@ -531,7 +535,8 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                 "started_at": datetime.now(timezone.utc).isoformat(),
                 "git_at_start": before_run_git,
                 "milestone1_preservation": milestone1,
-                "qualification_only": True,
+                "qualification_only": not config.is_full_benchmark,
+                "experiment_round": config.round_numbers[0],
                 "research_conclusion_authorized": False,
             },
         )
@@ -757,16 +762,30 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
             {"phase": "after_ground_truth_validation", "host": host_environment()}
         )
 
-        last_phase = "shared_buffer_reset"
-        log.write(
-            "evicting PostgreSQL shared buffers after CHECKPOINT; OS cache is not flushed"
-        )
-        started = time.perf_counter_ns()
-        cache_reset = evict_shared_buffers(preparation)
-        phase_metrics["shared_buffer_reset_ns"] = time.perf_counter_ns() - started
+        if config.is_full_benchmark:
+            last_phase = "postgresql_restart"
+            with preparation.cursor() as cursor:
+                cursor.execute("CHECKPOINT", prepare=False)
+            before_restart = capture_restart_identity(preparation)
+            write_json_exclusive(run_dir / "restart_before.json", before_restart)
+            preparation.close()
+            open_connections.remove(preparation)
+            cache_reset = wait_for_restart(before_restart, log=log.write)
+            phase_metrics["restart_wait_ns"] = cache_reset["wait_duration_ns"]
+            # A full run performs no buffer-eviction operation. Keep the legacy
+            # phase explicit as zero; human wait is excluded from projections.
+            phase_metrics["shared_buffer_reset_ns"] = 0
+        else:
+            last_phase = "shared_buffer_reset"
+            log.write(
+                "evicting PostgreSQL shared buffers after CHECKPOINT; OS cache is not flushed"
+            )
+            started = time.perf_counter_ns()
+            cache_reset = evict_shared_buffers(preparation)
+            phase_metrics["shared_buffer_reset_ns"] = time.perf_counter_ns() - started
+            preparation.close()
+            open_connections.remove(preparation)
         write_json_exclusive(run_dir / "cache_reset.json", cache_reset)
-        preparation.close()
-        open_connections.remove(preparation)
 
         last_phase = "persistent_sessions"
         connections: dict[str, Any] = {}
@@ -967,7 +986,7 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
         final_validation_started = time.perf_counter_ns()
         expected_keys = {
             (round_number, method, threshold, query_id, repetition)
-            for round_number in range(1, config.rounds + 1)
+            for round_number in config.round_numbers
             for method in config.methods
             for threshold in config.filters
             for query_id in timed_query_ids
@@ -1100,9 +1119,11 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                 "full_1m_supplied_neighbor_check": "deferred by stop condition",
             },
             "qualification_measurements_are_research_findings": False,
+            "full_benchmark_scale_only": config.scale_rows if config.is_full_benchmark else None,
+            "experiment_round": config.round_numbers[0],
         }
         write_json_exclusive(run_dir / "validation_report.json", validation_report)
-        log.write("all hard qualification gates passed; finalizing checksums")
+        log.write("all hard validation gates passed; finalizing checksums")
         log.sync()
         finalize_complete(
             run_dir,
@@ -1112,7 +1133,8 @@ def run_stage(config_path: Path, dataset_path: Path) -> Path:
                 "stage_id": config.stage["stage_id"],
                 "completed_at": datetime.now(timezone.utc).isoformat(),
                 "valid": True,
-                "qualification_only": True,
+                "qualification_only": not config.is_full_benchmark,
+                "experiment_round": config.round_numbers[0],
                 "timed_executions": len(execution_rows),
                 "research_conclusion_authorized": False,
             },

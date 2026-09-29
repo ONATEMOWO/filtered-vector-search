@@ -92,6 +92,15 @@ class BenchmarkConfig:
         return int(self.stage["rounds"])
 
     @property
+    def is_full_benchmark(self) -> bool:
+        return bool(self.stage["full_benchmark_authorized"])
+
+    @property
+    def round_numbers(self) -> tuple[int, ...]:
+        # Each invocation physically loads and builds exactly one graph.
+        return (int(self.stage.get("experiment_round", 1)),)
+
+    @property
     def expected_execution_count(self) -> int:
         return (
             len(self.methods)
@@ -211,8 +220,6 @@ def validate_config(protocol: dict[str, Any], stage: dict[str, Any]) -> None:
 
     if stage.get("protocol_id") != protocol.get("protocol_id"):
         raise ValueError("stage protocol_id does not match the frozen protocol")
-    if stage.get("stage_id") not in {"preflight-10k", "qualification-100k"}:
-        raise ValueError("only the accepted qualification stages may run")
     accepted_stage_profiles = {
         "preflight-10k": {
             "schema_version": 1,
@@ -243,7 +250,23 @@ def validate_config(protocol: dict[str, Any], stage: dict[str, Any]) -> None:
             "full_benchmark_authorized": False,
         },
     }
+    for round_number in (1, 2):
+        accepted_stage_profiles[f"benchmark-100k-round-{round_number}"] = {
+            **accepted_stage_profiles["qualification-100k"],
+            "timed_query_count": 200,
+            "repetitions": 5,
+            "full_benchmark_authorized": True,
+            "experiment_round": round_number,
+            "campaign_id": "standalone-100k-v1",
+            "cache_reset_method": "postgresql_restart_required",
+            "larger_scales_authorized": False,
+        }
     stage_id = str(stage["stage_id"])
+    if stage_id not in accepted_stage_profiles:
+        raise ValueError("only qualification or the two authorized standalone 100k stages may run")
+    is_full = stage_id.startswith("benchmark-100k-round-")
+    if not is_full and "experiment_round" in stage:
+        raise ValueError("qualification round identity cannot be overridden")
     for key, expected_value in accepted_stage_profiles[stage_id].items():
         if stage.get(key) != expected_value:
             raise ValueError(
@@ -253,22 +276,19 @@ def validate_config(protocol: dict[str, Any], stage: dict[str, Any]) -> None:
     scale_rows = int(stage.get("scale_rows", 0))
     if scale_rows not in ALLOWED_QUALIFICATION_SCALES:
         raise ValueError("qualification runner refuses scales above 100,000 rows")
-    if bool(stage.get("full_benchmark_authorized", False)):
-        raise ValueError("full benchmark authorization must remain false in this milestone")
     if int(stage.get("ground_truth_query_count", 0)) != 200:
         raise ValueError("qualification must generate all 200 selected-query ground truths")
     if int(stage.get("warmup_query_count", 0)) != 20:
         raise ValueError("the accepted warm-up set contains exactly 20 queries")
-    expected_stage_scales = {"preflight-10k": 10_000, "qualification-100k": 100_000}
-    if scale_rows != expected_stage_scales[str(stage["stage_id"])]:
+    if scale_rows != accepted_stage_profiles[stage_id]["scale_rows"]:
         raise ValueError("stage_id and physical scale_rows do not match")
     if int(stage.get("timed_query_count", 0)) <= 0:
         raise ValueError("timed_query_count must be positive")
-    if int(stage.get("timed_query_count", 0)) > 20:
+    if not is_full and int(stage.get("timed_query_count", 0)) > 20:
         raise ValueError("bounded qualification may time at most 20 queries")
     if int(stage.get("repetitions", 0)) <= 0:
         raise ValueError("repetitions must be positive")
-    if int(stage.get("repetitions", 0)) > 2 or int(stage.get("rounds", 0)) != 1:
+    if (not is_full and int(stage.get("repetitions", 0)) > 2) or int(stage.get("rounds", 0)) != 1:
         raise ValueError("qualification profiles may not launch full repetitions or rounds")
     if int(stage.get("independent_validation_count", 0)) < 20:
         raise ValueError("at least 20 ground-truth combinations require independent validation")

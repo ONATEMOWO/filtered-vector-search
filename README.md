@@ -159,6 +159,11 @@ the research question.
 
 ## Milestone 2 qualification
 
+The resumed 29 September authorization adds a separately identified full
+100k-only, two-build campaign after successful qualification. See
+`docs/STANDALONE_100K_ADDENDUM.md` for its strict restart requirement and exact
+commands. It does not authorize 250k+ or the complete four-scale matrix.
+
 The frozen methodology is `docs/MILESTONE_2_PROTOCOL.md`. Milestone 2 uses the
 canonical ANN-Benchmarks SIFT1M HDF5 artifact without normalization, a globally
 deterministic SHA-256 scale ranking, exact 50/20/10/5/1 percent metadata

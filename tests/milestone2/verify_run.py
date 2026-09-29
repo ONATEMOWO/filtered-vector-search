@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independently verify a completed Milestone 2 qualification run directory."""
+"""Independently verify completed Milestone 2 qualification or full-100k evidence."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import statistics
 import subprocess
 import sys
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +21,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from experiments.milestone2.artifacts import verify_checksum_manifest  # noqa: E402
+from experiments.milestone2.artifacts import sha256_file, verify_checksum_manifest  # noqa: E402
 from experiments.milestone2.config import (  # noqa: E402
     BenchmarkConfig,
     PROTOCOL_PATH,
@@ -154,6 +155,59 @@ def verify_summary(stored: list[dict[str, Any]], executions: list[dict[str, Any]
                 raise AssertionError(f"summary {name} differs from independent recomputation")
 
 
+PHYSICAL_RELATIONS = {
+    "sift_exact": "r",
+    "sift_hnsw": "r",
+    "sift_exact_pkey": "i",
+    "sift_hnsw_pkey": "i",
+    "sift_exact_filter_bucket_idx": "i",
+    "sift_hnsw_embedding_idx": "i",
+}
+
+
+def verified_relation_identity(identity: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    rows = identity.get("relations", [])
+    relations = {row.get("relation"): row for row in rows}
+    if len(rows) != len(PHYSICAL_RELATIONS) or set(relations) != set(PHYSICAL_RELATIONS):
+        raise AssertionError("restart evidence lacks the six expected physical relations")
+    for name, kind in PHYSICAL_RELATIONS.items():
+        row = relations[name]
+        if row.get("kind") != kind or type(row.get("oid")) is not int or row["oid"] <= 0 or type(row.get("filenode")) is not int or row["filenode"] <= 0:
+            raise AssertionError("restart evidence has invalid relation identity")
+    if len({row["oid"] for row in rows}) != len(rows) or len({row["filenode"] for row in rows}) != len(rows):
+        raise AssertionError("restart evidence has duplicate relation OIDs or filenodes")
+    return relations
+
+
+def verify_cache_evidence(cache: dict[str, Any], *, full_benchmark: bool) -> None:
+    if cache.get("operating_system_cache_flushed") is not False:
+        raise AssertionError("cache evidence must preserve the unflushed OS-cache policy")
+    if not full_benchmark:
+        if int(cache.get("after", {}).get("buffers_used", -1)) != 0:
+            raise AssertionError("qualification shared-buffer reset evidence is invalid")
+        return
+    if cache.get("method") != "postgresql_restart_required" or any(
+        cache.get(name) is not True
+        for name in ("postmaster_restarted", "same_cluster_and_database", "physical_relations_unchanged", "checkpoint_before_restart", "passed")
+    ):
+        raise AssertionError("full benchmark requires verified actual PostgreSQL restart evidence")
+    before, after = cache.get("before", {}), cache.get("after", {})
+    for name in ("system_identifier", "database", "server_version_num"):
+        if not isinstance(before.get(name), str) or not before[name] or before[name] != after.get(name):
+            raise AssertionError("restart changed or omitted cluster/database/version identity")
+    try:
+        old_start = datetime.fromisoformat(before["postmaster_started_at"])
+        new_start = datetime.fromisoformat(after["postmaster_started_at"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise AssertionError("restart evidence has invalid postmaster timestamps") from error
+    if old_start.tzinfo is None or new_start.tzinfo is None or new_start <= old_start:
+        raise AssertionError("restart did not produce a later postmaster start time")
+    if verified_relation_identity(before) != verified_relation_identity(after):
+        raise AssertionError("physical relations changed across the restart boundary")
+    if type(cache.get("wait_duration_ns")) is not int or cache["wait_duration_ns"] <= 0 or type(cache.get("poll_count")) is not int or cache["poll_count"] < 1 or type(cache.get("connection_failures")) is not int or cache["connection_failures"] < 0:
+        raise AssertionError("restart polling/wait evidence is invalid")
+
+
 def verify_run(run_dir: Path) -> dict[str, object]:
     required = {
         "config.json",
@@ -223,6 +277,11 @@ def verify_run(run_dir: Path) -> dict[str, object]:
         or not complete.get("valid")
     ):
         raise AssertionError("run/config/final marker identities are inconsistent")
+    for marker in (run_manifest, complete):
+        if marker.get("qualification_only") is not (not benchmark_config.is_full_benchmark) or marker.get("research_conclusion_authorized") is not False:
+            raise AssertionError("run scope flags disagree with the configured stage")
+        if benchmark_config.is_full_benchmark and marker.get("experiment_round") != stage["experiment_round"]:
+            raise AssertionError("full benchmark marker has the wrong experiment round")
     git_at_start = run_manifest.get("git_at_start", {})
     if git_at_start.get("dirty") or git_at_start.get("status_porcelain"):
         raise AssertionError("run did not start from a clean Git state")
@@ -265,7 +324,7 @@ def verify_run(run_dir: Path) -> dict[str, object]:
             raise AssertionError(f"dataset {name} differs from independently inspected source")
     power = read_json(run_dir / "power_state.json")
     if not power.get("ac_power_detected"):
-        raise AssertionError("AC-power qualification gate did not pass")
+        raise AssertionError("AC-power run gate did not pass")
 
     scale_manifest = read_json(run_dir / "scale_manifest.json")
     assignment = protocol["scale_assignment"]
@@ -404,7 +463,7 @@ def verify_run(run_dir: Path) -> dict[str, object]:
         )
     expected_keys = {
         (round_number, method, threshold, query_id, repetition)
-        for round_number in range(1, int(stage["rounds"]) + 1)
+        for round_number in benchmark_config.round_numbers
         for method in methods
         for threshold in filters
         for query_id in timed_queries
@@ -484,7 +543,7 @@ def verify_run(run_dir: Path) -> dict[str, object]:
     blocks = schedule.get("blocks", [])
     expected_block_keys = {
         (round_number, method, threshold)
-        for round_number in range(1, int(stage["rounds"]) + 1)
+        for round_number in benchmark_config.round_numbers
         for method in methods
         for threshold in filters
     }
@@ -717,15 +776,19 @@ def verify_run(run_dir: Path) -> dict[str, object]:
         raise AssertionError("required exact metadata/HNSW index definitions are absent")
 
     cache = read_json(run_dir / "cache_reset.json")
-    if (
-        int(cache.get("after", {}).get("buffers_used", -1)) != 0
-        or cache.get("operating_system_cache_flushed") is not False
-    ):
-        raise AssertionError("qualification shared-buffer reset evidence is invalid")
+    verify_cache_evidence(cache, full_benchmark=benchmark_config.is_full_benchmark)
+    if benchmark_config.is_full_benchmark:
+        if read_json(run_dir / "restart_before.json") != cache["before"]:
+            raise AssertionError("persisted pre-restart identity differs from completed restart proof")
 
     stored_summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
     verify_summary(stored_summary, executions)
     phases = read_json(run_dir / "phase_metrics.json")
+    if benchmark_config.is_full_benchmark and (
+        phases.get("restart_wait_ns") != cache["wait_duration_ns"]
+        or phases.get("shared_buffer_reset_ns") != 0
+    ):
+        raise AssertionError("full benchmark restart wait/fallback phase evidence is invalid")
     for name in (
         "copy_exact_ns",
         "copy_hnsw_from_exact_ns",
@@ -755,6 +818,11 @@ def verify_run(run_dir: Path) -> dict[str, object]:
     validation = read_json(run_dir / "validation_report.json")
     if not validation.get("passed"):
         raise AssertionError("validation_report.json is not passing")
+    if benchmark_config.is_full_benchmark and (
+        validation.get("full_benchmark_scale_only") != 100000
+        or validation.get("experiment_round") != stage["experiment_round"]
+    ):
+        raise AssertionError("full-100k validation scope or round identity is invalid")
     expected_checks = {
         "physical_scale_rows": scale_rows, "exact_filter_counts": filter_counts,
         "ground_truth_records": len(ground_truth_rows), "ground_truth_deterministic_reexecutions": len(ground_truth_rows),
@@ -780,6 +848,131 @@ def verify_run(run_dir: Path) -> dict[str, object]:
         "deterministic_query_and_schedule_verified": True,
         "artifact_checksums_unchanged_after_verification": True,
         "passed": True,
+    }
+
+
+def source_blob_identity(commit: str) -> dict[str, str]:
+    """Allow intervening artifact commits, but require identical experiment code/config."""
+    completed = subprocess.run(
+        ["git", "ls-tree", "-r", "--full-tree", commit, "--",
+         "experiments/milestone2", "sql/milestone2", "config/milestone2",
+         "tests/milestone2", "requirements-milestone2.txt"],
+        cwd=ROOT, text=True, capture_output=True, check=True,
+    )
+    identity = {}
+    for line in completed.stdout.splitlines():
+        metadata, path = line.split("\t", maxsplit=1)
+        mode, object_type, digest = metadata.split()
+        if object_type != "blob":
+            raise AssertionError("experiment source identity contains a non-file Git object")
+        identity[path] = f"{mode}:{digest}"
+    if not identity:
+        raise AssertionError("recorded source commit contains no experiment files")
+    return identity
+
+
+def verify_round_pair(first_dir: Path, second_dir: Path) -> dict[str, Any]:
+    """Fully verify both 100k rounds and their shared data plus distinct physical builds.
+
+    This is read-only. The caller may save the returned report outside both
+    immutable run directories as the full-100k campaign evidence.
+    """
+    paths = [first_dir.resolve(), second_dir.resolve()]
+    if paths[0] == paths[1]:
+        raise AssertionError("full-100k campaign requires two distinct run directories")
+    reports = [verify_run(path) for path in paths]
+    configs = [read_json(path / "config.json") for path in paths]
+    stages = [config["stage"] for config in configs]
+    if [stage.get("stage_id") for stage in stages] != ["benchmark-100k-round-1", "benchmark-100k-round-2"] or [stage.get("experiment_round") for stage in stages] != [1, 2]:
+        raise AssertionError("round-pair order must be full-100k round 1 then round 2")
+    if any(stage.get("scale_rows") != 100000 or stage.get("timed_query_count") != 200 or stage.get("repetitions") != 5 for stage in stages):
+        raise AssertionError("round pair does not contain the complete 100k workload")
+    if configs[0]["protocol"] != configs[1]["protocol"]:
+        raise AssertionError("round-pair protocols differ")
+    # Only these descriptive fields and the explicit round identity may differ.
+    round_specific = {"stage_id", "experiment_round", "purpose"}
+    shared_stage_settings = [{key: value for key, value in stage.items() if key not in round_specific} for stage in stages]
+    if shared_stage_settings[0] != shared_stage_settings[1]:
+        raise AssertionError("round-pair stage settings differ beyond round identity")
+
+    manifests = [read_json(path / "run_manifest.json") for path in paths]
+    commits = [str(manifest["git_at_start"]["commit"]) for manifest in manifests]
+    source_blobs = [source_blob_identity(commit) for commit in commits]
+    if source_blobs[0] != source_blobs[1]:
+        raise AssertionError("experiment source code/configuration changed between rounds")
+    datasets = [read_json(path / "dataset_manifest.json") for path in paths]
+    dataset_identity_fields = ("sha256", "byte_size", "groups", "attributes", "values_normalized", "base_ids_zero_based")
+    if any(datasets[0].get(key) != datasets[1].get(key) for key in dataset_identity_fields):
+        raise AssertionError("round-pair SIFT source identity differs")
+    scales = [read_json(path / "scale_manifest.json") for path in paths]
+    if scales[0] != scales[1]:
+        raise AssertionError("round-pair deterministic physical scale manifests differ")
+    queries = [read_json(path / "queries.json") for path in paths]
+    if queries[0] != queries[1]:
+        raise AssertionError("round-pair query selection/vector identity differs")
+    databases = [read_json(path / "database_evidence.json") for path in paths]
+    for key in ("source_vector_stream_sha256", "ordered_vector_stream_sha256", "rank_contract", "filter_counts"):
+        if databases[0].get(key) != databases[1].get(key):
+            raise AssertionError(f"round-pair physical data evidence differs: {key}")
+    truths = [ground_truth_index(read_jsonl(path / "ground_truth.jsonl")) for path in paths]
+    if set(truths[0]) != set(truths[1]):
+        raise AssertionError("round-pair ground-truth query/filter matrices differ")
+    normalized_truth = []
+    for truth in truths:
+        normalized_truth.append([
+            {field: value for field, value in truth[key].items() if field not in {"run_id", "record_sha256"}}
+            for key in sorted(truth)
+        ])
+    if normalized_truth[0] != normalized_truth[1]:
+        raise AssertionError("round-pair ground truth changed")
+
+    caches = [read_json(path / "cache_reset.json") for path in paths]
+    for cache in caches:
+        verify_cache_evidence(cache, full_benchmark=True)
+    for field in ("system_identifier", "database", "server_version_num"):
+        if caches[0]["before"][field] != caches[1]["before"][field]:
+            raise AssertionError("round-pair cluster/database/version identity differs")
+    relations = [verified_relation_identity(cache["before"]) for cache in caches]
+    rebuild_evidence = []
+    for name in sorted(PHYSICAL_RELATIONS):
+        before, after = relations[0][name], relations[1][name]
+        if before["oid"] == after["oid"] or before["filenode"] == after["filenode"]:
+            raise AssertionError(f"physical object was reused across rounds: {name}")
+        rebuild_evidence.append({
+            "relation": name, "kind": before["kind"],
+            "round_1_oid": before["oid"], "round_2_oid": after["oid"],
+            "round_1_filenode": before["filenode"], "round_2_filenode": after["filenode"],
+        })
+    first_end = datetime.fromisoformat(read_json(paths[0] / "COMPLETE.json")["completed_at"])
+    second_start = datetime.fromisoformat(manifests[1]["started_at"])
+    if first_end.tzinfo is None or second_start.tzinfo is None or second_start <= first_end:
+        raise AssertionError("full rounds were not recorded sequentially")
+    for path in paths:
+        verify_checksum_manifest(path)
+    return {
+        "schema_version": 1,
+        "campaign": "full-100k-only",
+        "run_ids": [path.name for path in paths],
+        "run_paths": [str(path) for path in paths],
+        "source_commits": commits,
+        "source_blob_identity_sha256": sha256_json(source_blobs[0]),
+        "dataset_sha256": datasets[0]["sha256"],
+        "physical_data_stream_sha256": databases[0]["ordered_vector_stream_sha256"],
+        "ground_truth_content_sha256_ignoring_run_identity": sha256_json(normalized_truth[0]),
+        "ground_truth_records_equal": len(truths[0]),
+        "query_manifest_sha256": sha256_json(queries[0]),
+        "physical_rebuild_evidence": rebuild_evidence,
+        "actual_restart_verified_each_round": True,
+        "identical_source_code_data_and_ground_truth": True,
+        "independent_round_verifications": reports,
+        "total_timed_executions": sum(int(report["timed_executions"]) for report in reports),
+        "source_artifact_hashes": [{
+            "run_id": path.name,
+            **{name: sha256_file(path / name) for name in ("checksums.sha256", "cache_reset.json", "database_evidence.json", "ground_truth.jsonl")},
+        } for path in paths],
+        "passed": True,
+        "research_conclusions_authorized": False,
+        "larger_scales_executed": False,
     }
 
 

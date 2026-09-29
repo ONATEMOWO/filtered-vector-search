@@ -211,6 +211,15 @@ def measurement_markdown(runs: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+def latency_axis_upper_ms(runs: list[dict[str, Any]]) -> float:
+    """Set shared limits only after considering every panel, avoiding clipped bars."""
+    return max(
+        0.001,
+        max(float(row["median_latency_ns"]) / 1e6
+            for run in runs for row in run["conditions"].values()) * 1.08,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("run_dirs", nargs="+", type=Path, help="explicit completed qualification directories")
@@ -256,8 +265,8 @@ def main() -> None:
             axis.grid(axis="y", alpha=0.22)
             if metric != "median_latency_ns":
                 axis.set_ylim(0, 1.06)
-            else:
-                axis.set_ylim(bottom=0)
+        if metric == "median_latency_ns":
+            axes[0][0].set_ylim(0, latency_axis_upper_ms(runs))
         axes[0][0].set_ylabel(ylabel)
         figure.suptitle(f"{title}\nQualification / infrastructure validation", fontsize=15, y=0.97)
         handles, labels = axes[0][0].get_legend_handles_labels()

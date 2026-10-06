@@ -1,0 +1,19 @@
+{
+  "cache_cause_identified": false,
+  "complete_payload_files": 511,
+  "config_sha256": "5791f42860c160a24ba0f32b40b2a9682c14ba45dcb133bb36627d3589ca06c8",
+  "fresh_numpy_checks": 40,
+  "ground_truth_records": 2000,
+  "independence_scope": "Independent recall, grids, provenance and artifact checks; shared source selection, plan and NumPy helpers.",
+  "input_checksums_unchanged": true,
+  "latency_stability_asserted": false,
+  "measured_executions": 60000,
+  "paired_arms_per_graph": 2,
+  "passed": true,
+  "physical_graph_builds": 2,
+  "plan_audits": 60,
+  "preparation_executions": 7200,
+  "run_id": "20261006T085044Z_5791f42860c1",
+  "source_commit": "8f6f7a3dca6c3d92d8ac8bf16a77bb8ad1fb0cd4",
+  "source_distances_checked": 67260
+}

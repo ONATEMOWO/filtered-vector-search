@@ -1,0 +1,68 @@
+2026-10-06T08:50:44.152790+00:00 Starting bounded preparation-policy campaign: 100k, two builds, four arms
+2026-10-06T08:50:51.230820+00:00 Build 1: physically reloading 100k and building HNSW
+2026-10-06T08:52:31.171361+00:00 b1_A: verified shared-buffer eviction; OS cache retained
+2026-10-06T08:52:33.790133+00:00 b1_A_block01: exact, filter 1
+2026-10-06T08:52:35.519001+00:00 b1_A_block02: exact, filter 20
+2026-10-06T08:52:47.830808+00:00 b1_A_block03: hnsw_standard, filter 10
+2026-10-06T08:52:51.481665+00:00 b1_A_block04: exact, filter 5
+2026-10-06T08:52:55.982524+00:00 b1_A_block05: hnsw_standard, filter 5
+2026-10-06T08:52:57.366074+00:00 b1_A_block06: hnsw_standard, filter 1
+2026-10-06T08:52:58.771720+00:00 b1_A_block07: hnsw_iterative, filter 10
+2026-10-06T08:53:02.439449+00:00 b1_A_block08: hnsw_iterative, filter 20
+2026-10-06T08:53:04.344577+00:00 b1_A_block09: hnsw_iterative, filter 1
+2026-10-06T08:53:17.400462+00:00 b1_A_block10: hnsw_standard, filter 20
+2026-10-06T08:53:18.841362+00:00 b1_A_block11: exact, filter 50
+2026-10-06T08:53:42.003573+00:00 b1_A_block12: hnsw_iterative, filter 50
+2026-10-06T08:53:43.638424+00:00 b1_A_block13: hnsw_iterative, filter 5
+2026-10-06T08:53:47.766665+00:00 b1_A_block14: hnsw_standard, filter 50
+2026-10-06T08:53:49.025995+00:00 b1_A_block15: exact, filter 10
+2026-10-06T08:53:55.734460+00:00 b1_B: verified shared-buffer eviction; OS cache retained
+2026-10-06T08:53:56.175244+00:00 b1_B_block01: exact, filter 1
+2026-10-06T08:53:58.335186+00:00 b1_B_block02: exact, filter 20
+2026-10-06T08:54:12.605351+00:00 b1_B_block03: hnsw_standard, filter 10
+2026-10-06T08:54:14.409904+00:00 b1_B_block04: exact, filter 5
+2026-10-06T08:54:19.465204+00:00 b1_B_block05: hnsw_standard, filter 5
+2026-10-06T08:54:21.056321+00:00 b1_B_block06: hnsw_standard, filter 1
+2026-10-06T08:54:22.703405+00:00 b1_B_block07: hnsw_iterative, filter 10
+2026-10-06T08:54:26.959444+00:00 b1_B_block08: hnsw_iterative, filter 20
+2026-10-06T08:54:29.868778+00:00 b1_B_block09: hnsw_iterative, filter 1
+2026-10-06T08:54:47.366014+00:00 b1_B_block10: hnsw_standard, filter 20
+2026-10-06T08:54:50.389153+00:00 b1_B_block11: exact, filter 50
+2026-10-06T08:55:23.161360+00:00 b1_B_block12: hnsw_iterative, filter 50
+2026-10-06T08:55:25.532413+00:00 b1_B_block13: hnsw_iterative, filter 5
+2026-10-06T08:55:31.278346+00:00 b1_B_block14: hnsw_standard, filter 50
+2026-10-06T08:55:33.086023+00:00 b1_B_block15: exact, filter 10
+2026-10-06T08:55:41.503666+00:00 Build 2: physically reloading 100k and building HNSW
+2026-10-06T09:00:03.768074+00:00 b2_B: verified shared-buffer eviction; OS cache retained
+2026-10-06T09:00:06.664662+00:00 b2_B_block01: exact, filter 10
+2026-10-06T09:00:14.715209+00:00 b2_B_block02: hnsw_standard, filter 50
+2026-10-06T09:00:18.567599+00:00 b2_B_block03: hnsw_iterative, filter 5
+2026-10-06T09:00:25.035845+00:00 b2_B_block04: hnsw_iterative, filter 50
+2026-10-06T09:00:26.982220+00:00 b2_B_block05: exact, filter 50
+2026-10-06T09:01:01.164372+00:00 b2_B_block06: hnsw_standard, filter 20
+2026-10-06T09:01:06.203266+00:00 b2_B_block07: hnsw_iterative, filter 1
+2026-10-06T09:01:20.039203+00:00 b2_B_block08: hnsw_iterative, filter 20
+2026-10-06T09:01:22.368360+00:00 b2_B_block09: hnsw_iterative, filter 10
+2026-10-06T09:01:25.460600+00:00 b2_B_block10: hnsw_standard, filter 1
+2026-10-06T09:01:27.026215+00:00 b2_B_block11: hnsw_standard, filter 5
+2026-10-06T09:01:28.716007+00:00 b2_B_block12: exact, filter 5
+2026-10-06T09:01:33.749434+00:00 b2_B_block13: hnsw_standard, filter 10
+2026-10-06T09:01:35.405204+00:00 b2_B_block14: exact, filter 20
+2026-10-06T09:01:49.477424+00:00 b2_B_block15: exact, filter 1
+2026-10-06T09:01:51.834747+00:00 b2_A: verified shared-buffer eviction; OS cache retained
+2026-10-06T09:01:54.101989+00:00 b2_A_block01: exact, filter 10
+2026-10-06T09:02:00.634356+00:00 b2_A_block02: hnsw_standard, filter 50
+2026-10-06T09:02:03.105751+00:00 b2_A_block03: hnsw_iterative, filter 5
+2026-10-06T09:02:07.835181+00:00 b2_A_block04: hnsw_iterative, filter 50
+2026-10-06T09:02:09.533901+00:00 b2_A_block05: exact, filter 50
+2026-10-06T09:02:33.646088+00:00 b2_A_block06: hnsw_standard, filter 20
+2026-10-06T09:02:35.025329+00:00 b2_A_block07: hnsw_iterative, filter 1
+2026-10-06T09:02:46.012502+00:00 b2_A_block08: hnsw_iterative, filter 20
+2026-10-06T09:02:47.830949+00:00 b2_A_block09: hnsw_iterative, filter 10
+2026-10-06T09:02:50.533471+00:00 b2_A_block10: hnsw_standard, filter 1
+2026-10-06T09:02:51.932196+00:00 b2_A_block11: hnsw_standard, filter 5
+2026-10-06T09:02:53.224301+00:00 b2_A_block12: exact, filter 5
+2026-10-06T09:02:57.352636+00:00 b2_A_block13: hnsw_standard, filter 10
+2026-10-06T09:02:58.687131+00:00 b2_A_block14: exact, filter 20
+2026-10-06T09:03:10.652889+00:00 b2_A_block15: exact, filter 1
+2026-10-06T09:03:16.915030+00:00 Producer hard gates passed; finalizing. Independent offline verification remains required.

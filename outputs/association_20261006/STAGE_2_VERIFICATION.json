@@ -1,0 +1,22 @@
+{
+  "association_gate_passed": true,
+  "build_number": 1,
+  "complete_payload_files": 252,
+  "config_sha256": "dcf7ada71ed5c1ed652a13f3a29ad58a32227f14e4362b657287f1393663ff24",
+  "fresh_numpy_checks": 40,
+  "ground_truth_records": 2000,
+  "independence_scope": "Independent metadata, neighborhood source ranking, truth partition, schedule and provenance; reused checksum/recall/chunk/source/plan/statistic/NumPy helpers.",
+  "input_checksums_unchanged": true,
+  "latency_stability_asserted": false,
+  "measured_executions": 30000,
+  "metadata_modes_sharing_graph": 2,
+  "passed": true,
+  "physical_graph_builds": 1,
+  "plan_audits": 30,
+  "preparation_executions": 600,
+  "run_id": "20261006T180734Z_dcf7ada71ed5",
+  "scale_rows": 250000,
+  "source_commit": "9047f081058541920ebf77ca39554bce2a7e98fb",
+  "source_distance_rows_checked": 30630,
+  "source_neighborhoods_recomputed": 220
+}

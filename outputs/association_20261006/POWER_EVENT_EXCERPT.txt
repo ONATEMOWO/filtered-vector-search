@@ -1,0 +1,26 @@
+Collection date: 2026-10-06; system log timestamps below use America/Chicago (-0500).
+Source: /usr/bin/pmset -g log. Relevant lines transcribed from the command output;
+whitespace normalized. Unrelated application assertions and wake requests omitted.
+Collection commands:
+pmset -g log | awk '$1 == "2026-10-06" && $2 >= "12:56:00" && $2 <= "13:06:00" && /Using (Batt|BATT|AC)/ {print}' | tail -6
+pmset -g log | awk '$1 == "2026-10-06" && $2 >= "12:56:00" && $2 <= "13:32:00" && ($4 == "Sleep" || $4 == "Wake" || $4 == "DarkWake") {print}'
+
+2026-10-06 12:58:28 -0500 Assertions Summary- [System: PrevIdle] Using Batt(Charge: 87)
+2026-10-06 12:58:41 -0500 Assertions Summary- [System: PrevIdle DeclUser kDisp] Using Batt(Charge: 86)
+2026-10-06 13:02:56 -0500 Assertions Summary- [System: PrevIdle] Using Batt(Charge: 81)
+2026-10-06 13:03:23 -0500 Assertions Summary- [System: DeclUser kDisp] Using Batt(Charge: 81)
+
+2026-10-06 13:22:48 -0500 Sleep Entering Sleep state due to 'Idle Sleep':TCPKeepAlive=active Using Batt (Charge:56%) 43 secs
+2026-10-06 13:23:31 -0500 Wake Wake from Deep Idle [CDNVA] : due to EC.KeyboardTouchpad/User Using BATT (Charge:56%) 102 secs
+2026-10-06 13:25:13 -0500 Sleep Entering Sleep state due to 'Idle Sleep':TCPKeepAlive=active Using Batt (Charge:52%) 75 secs
+2026-10-06 13:26:28 -0500 Wake Wake from Deep Idle [CDNVA] : due to EC.KeyboardTouchpad/User Using BATT (Charge:52%)
+
+Contemporaneous direct /usr/bin/pmset -g batt check during investigation:
+Now drawing from 'AC Power'
+ -InternalBattery-0 (id=7209059) 42%; discharging; 0:32 remaining present: true
+
+Interpretation: positive battery/suspend evidence conflicts with run-boundary AC
+strings. This excerpt is not a complete continuous power trace, and does not
+establish the physical cause of the conflicting telemetry. No sleep event was
+returned for the first100k run's interval by the scoped query above; that does
+not restore its AC-power eligibility. Both timings are excluded conservatively.

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-06",
+  "status": "matched timing campaign suspended; two verified quality/density stages only",
+  "campaign_complete": false,
+  "completed_physical_stages": 2,
+  "planned_physical_stages": 4,
+  "timing_eligible": false,
+  "timing_disqualified_run_ids": [
+    "20261006T175652Z_5367e3fe7857",
+    "20261006T180734Z_dcf7ada71ed5"
+  ],
+  "evidence_file": "POWER_EVENT_EXCERPT.txt",
+  "raw_artifacts_modified": false,
+  "runs": [
+    {
+      "run_id": "20261006T175652Z_5367e3fe7857",
+      "scale_rows": 100000,
+      "build_number": 1,
+      "source_commit": "8d83d285d16f1decb41ffd4b43f4a8d0d0352983",
+      "raw_evidence_commit": "9047f081058541920ebf77ca39554bce2a7e98fb",
+      "checksums_sha256": "d08c178037df918b14f251d1378972aeb237f4f50cc1864798ece58dabc18592",
+      "complete_marker_sha256": "f33c7b28c36ed0424efd2bc8840e4f0070a25302be241e0d7fc7e27977460a70",
+      "started_at": "2026-10-06T17:56:52.280499+00:00",
+      "completed_at": "2026-10-06T18:05:18.929922+00:00",
+      "artifact_and_retrieval_verification_passed": true,
+      "timing_eligible": false,
+      "reason": "Host log reports battery operation during preparation and timed measurement, conflicting with AC strings at both run boundaries. AC-powered timing eligibility is not established."
+    },
+    {
+      "run_id": "20261006T180734Z_dcf7ada71ed5",
+      "scale_rows": 250000,
+      "build_number": 1,
+      "source_commit": "9047f081058541920ebf77ca39554bce2a7e98fb",
+      "checksums_sha256": "8fd01a717f4101f4fb29695cc50d330d62fb3c066a6b437647a43dac365c04da",
+      "complete_marker_sha256": "17f7ed7bdec0443a0e4536725d7a63a96124367c5c1a9ba70768991f8daa7664",
+      "started_at": "2026-10-06T18:07:34.591512+00:00",
+      "completed_at": "2026-10-06T18:31:02.975053+00:00",
+      "artifact_and_retrieval_verification_passed": true,
+      "timing_eligible": false,
+      "reason": "Actual system sleeps and battery operation occurred during radial timed measurement. Quarantine the entire stage's timing, not selected slow observations."
+    }
+  ],
+  "verified_evidence_retained": ["source vectors and metadata", "filter proportions", "source neighborhoods and manipulation diagnostics", "exact filtered ground truth", "actual prepared plans", "returned IDs and distances", "canonical and tie-aware recall", "result completeness"],
+  "not_supported": ["qualified AC-powered latency comparisons", "steady state", "completed four-stage campaign", "two graph builds per scale", "generalized final research conclusions"],
+  "cause_of_gate_miss": "Existing power checks only inspect run boundaries for an AC-power string and unchanged settings. They do not establish uninterrupted external power or absence of host sleep.",
+  "required_before_new_timing": ["user confirms a working charger and stable charge with lid open", "reject contradictory or ambiguous power telemetry", "record and validate sleep/wake events throughout the measurement interval", "use and verify a temporary sleep inhibitor; it is not proof of absence of sleep", "freeze a corrected timing-eligibility gate and rerun the matched campaign as a fresh chain, without splicing onto these timings"],
+  "disposition": "Keep immutable COMPLETE and checksum manifests as evidence of implemented gates; this external review supersedes their interpretation as timing qualification. No new database stage starts pending power resolution."
+}

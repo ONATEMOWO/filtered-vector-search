@@ -1,0 +1,9 @@
+{
+  "changed_historical_files": [],
+  "historical_evidence_files_checked": 858,
+  "original_worktree_status": [
+    " M raw_results/milestone_2/20260915T184137Z_bf300f7b1133/failure.json"
+  ],
+  "passed": true,
+  "unrelated_failure_working_sha256": "3707e3624b10d59936c6d53de6d743e71b7346ba83f1359fdf207023d86f3e9b"
+}

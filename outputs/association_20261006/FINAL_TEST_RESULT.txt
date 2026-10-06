@@ -1,0 +1,23 @@
+2026-10-06 — complete suite after timing-analysis quarantine guard
+Command:
+PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 .venv-milestone2/bin/python -m unittest discover -s tests -p 'test_*.py' -q
+
+Ran 311 tests in 72.094s
+OK
+
+Earlier pre-experiment complete suite: 311 tests in 63.981s, OK.
+Historical unchanged baseline: 213 tests in 57.950s, OK.
+Known-host-disqualification manual regression: both actual run IDs quarantined,
+unrelated fixture unaffected, default analysis raises before using timings.
+
+Final shell-syntax check: all four scripts separately parsed successfully:
+for script in scripts/postgres_local.sh scripts/bootstrap_postgres_macos.sh scripts/load_smoke_data.sh scripts/clean_results.sh; do bash -n "$script" || exit; done
+This replaces an insufficient multi-argument bash -n invocation, which only
+parsed the first script.
+
+Nonfatal Matplotlib/pyparsing deprecation and font-cache warnings occurred.
+INVALID log messages during these suites are intentional mock failure tests,
+not additional real database campaigns.
+
+Important: passing software tests does not qualify host timing. See
+HOST_VALIDITY_REVIEW.json and POWER_EVENT_EXCERPT.txt. No stage3 was started.

@@ -22,8 +22,22 @@ This is a measurement-qualification result, not final multi-scale findings.
 See [the factual handoff](outputs/preparation_policy_20261006/FACTUAL_HANDOFF.md),
 [all measured conditions](outputs/preparation_policy_20261006/pilot_analysis/ANALYSIS.md),
 and [the frozen design](docs/PREPARATION_POLICY_PROTOCOL.md).
-Larger scales remain paused. The sections below headed Milestone 1 or describing
-smoke commands retain that historical pipeline's semantics.
+The subsequent metadata-association milestone physically loaded **100k and
+250k once each**, with two metadata modes sharing each graph. Both stages passed
+retrieval/source/plan verification, but **their timing is disqualified**:
+host logs contradict boundary AC checks, and show system sleeps during 250k
+measurement. The four-stage matched campaign is incomplete; do not launch its
+remaining stages or treat these timings as qualified performance evidence.
+See [the host-validity review](outputs/association_20261006/HOST_VALIDITY_REVIEW.json)
+and [the frozen design](docs/METADATA_ASSOCIATION_PROTOCOL.md).
+The [quality-only checkpoint](outputs/association_20261006/quality_checkpoint/QUALITY_CHECKPOINT.md)
+and [factual handoff](outputs/association_20261006/FACTUAL_HANDOFF.md) distinguish
+verified retrieval evidence from disqualified timing and unfinished work.
+External power and a stronger sleep/power eligibility gate must be resolved
+before a fresh matched timing campaign. No 500k or 1M stage ran.
+
+The sections below headed Milestone 1 or describing smoke commands retain that
+historical pipeline's semantics.
 
 ## What is included
 

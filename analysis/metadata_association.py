@@ -176,10 +176,27 @@ def verify_inputs(report):
             raise ValueError("source dataset changed during analysis")
 
 
-def analyze(paths):
+def timing_disqualification(paths):
+    """Honor later host evidence without rewriting immutable producer bundles."""
+    review_path = ROOT / "outputs/association_20261006/HOST_VALIDITY_REVIEW.json"
+    if not review_path.exists():
+        return None
+    review = read_json(review_path)
+    affected = sorted({Path(p).name for p in paths} & set(review["timing_disqualified_run_ids"]))
+    if not affected:
+        return None
+    return {"timing_eligible": False, "affected_run_ids": affected,
+            "host_review_path": str(review_path), "host_review_sha256": sha256(review_path),
+            "restriction": "Quality/density-only forensic use; no qualified latency comparisons."}
+
+
+def analyze(paths, *, allow_disqualified_for_quality_only=False):
     paths = [Path(p).resolve() for p in paths]
     if not 1 <= len(paths) <= 4 or len(set(paths)) != len(paths):
         raise ValueError("require one to four distinct input stages")
+    disqualification = timing_disqualification(paths)
+    if disqualification and not allow_disqualified_for_quality_only:
+        raise ValueError("Known host-disqualified timing: use only the explicit quality-only checkpoint generator")
     inputs = [{"path": str(p), "sha256": snapshot(p)} for p in paths]
     sources, stages, conditions, comparisons, densities = {}, [], [], [], []
     for index, path in enumerate(paths, 1):
@@ -245,6 +262,7 @@ def analyze(paths):
               "campaign_complete": complete, "status": "complete four-stage campaign" if complete else "partial ordered campaign prefix",
               "interpretation": CAUTION, "stages": stages, "conditions": conditions,
               "metadata_comparisons": comparisons, "local_density_diagnostics": densities,
+              "timing_disqualification": disqualification,
               "counts": {"completed_stages": len(stages), "planned_stages": 4,
                          "measured_executions": len(stages)*30000, "warmup_executions": len(stages)*600,
                          "query_ids_per_condition": 200, "condition_count": len(conditions)},

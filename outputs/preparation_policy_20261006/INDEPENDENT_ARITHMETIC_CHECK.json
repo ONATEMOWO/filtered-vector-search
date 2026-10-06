@@ -1,0 +1,488 @@
+{
+  "audit": "independent NumPy/standard-library arithmetic; no project analysis import",
+  "rows": 60000,
+  "conditions": 60,
+  "canonical_analysis_present": true,
+  "condition_and_comparison_field_comparisons": 1425,
+  "preparation_field_comparisons": 360,
+  "total_field_comparisons": 1785,
+  "mismatches": [],
+  "engineering_flag_counts": {
+    "b1_A": 3,
+    "b1_B": 4,
+    "b2_A": 4,
+    "b2_B": 0
+  },
+  "flagged_conditions": [
+    {
+      "build": 1,
+      "arm": "A",
+      "method": "hnsw_iterative",
+      "filter": 1,
+      "first_later": 1.2229835131522238,
+      "later_range": 1.2615839089255685,
+      "passes_ms": [
+        13.4679935,
+        11.14933,
+        12.8343675,
+        11.0913605,
+        10.1732175
+      ]
+    },
+    {
+      "build": 1,
+      "arm": "A",
+      "method": "hnsw_iterative",
+      "filter": 10,
+      "first_later": 2.214024635700804,
+      "later_range": 1.185623623638142,
+      "passes_ms": [
+        5.1927185,
+        2.2752465,
+        2.3591215,
+        2.697586,
+        2.3022335
+      ]
+    },
+    {
+      "build": 1,
+      "arm": "A",
+      "method": "hnsw_standard",
+      "filter": 10,
+      "first_later": 5.024578101421115,
+      "later_range": 1.0411536454922647,
+      "passes_ms": [
+        5.923984,
+        1.204355,
+        1.170837,
+        1.170262,
+        1.1567505
+      ]
+    },
+    {
+      "build": 1,
+      "arm": "B",
+      "method": "hnsw_iterative",
+      "filter": 1,
+      "first_later": 0.9930481926328365,
+      "later_range": 1.4402274664544807,
+      "passes_ms": [
+        12.6370415,
+        13.41217,
+        11.5515055,
+        16.6367955,
+        12.47831
+      ]
+    },
+    {
+      "build": 1,
+      "arm": "B",
+      "method": "hnsw_iterative",
+      "filter": 10,
+      "first_later": 0.9280268269745315,
+      "later_range": 1.6595485284658906,
+      "passes_ms": [
+        2.190894,
+        2.229746,
+        2.201512,
+        2.4456725,
+        3.653516
+      ]
+    },
+    {
+      "build": 1,
+      "arm": "B",
+      "method": "hnsw_iterative",
+      "filter": 50,
+      "first_later": 0.8683306484192497,
+      "later_range": 1.4700731343323965,
+      "passes_ms": [
+        1.3192125,
+        1.4575555,
+        1.379869,
+        1.2935785,
+        1.901655
+      ]
+    },
+    {
+      "build": 1,
+      "arm": "B",
+      "method": "hnsw_standard",
+      "filter": 20,
+      "first_later": 1.0136528912109615,
+      "later_range": 1.5593382157740017,
+      "passes_ms": [
+        1.536243,
+        1.920732,
+        1.6756805,
+        1.3353035,
+        1.231761
+      ]
+    },
+    {
+      "build": 2,
+      "arm": "A",
+      "method": "hnsw_iterative",
+      "filter": 5,
+      "first_later": 0.7972204360412203,
+      "later_range": 1.3558286592584758,
+      "passes_ms": [
+        3.398609,
+        3.8343595,
+        3.94151,
+        4.671925,
+        5.1987345
+      ]
+    },
+    {
+      "build": 2,
+      "arm": "A",
+      "method": "hnsw_iterative",
+      "filter": 50,
+      "first_later": 1.259265570554414,
+      "later_range": 1.177448418916669,
+      "passes_ms": [
+        1.654657,
+        1.513325,
+        1.285258,
+        1.3012365,
+        1.3028305
+      ]
+    },
+    {
+      "build": 2,
+      "arm": "A",
+      "method": "hnsw_standard",
+      "filter": 5,
+      "first_later": 0.8370234786390667,
+      "later_range": 1.3398704687251455,
+      "passes_ms": [
+        0.954774,
+        1.2129365,
+        1.1553175,
+        0.905264,
+        1.144981
+      ]
+    },
+    {
+      "build": 2,
+      "arm": "A",
+      "method": "hnsw_standard",
+      "filter": 50,
+      "first_later": 1.4246114769896476,
+      "later_range": 1.3061791441979202,
+      "passes_ms": [
+        1.6179495,
+        1.0293705,
+        1.1562135,
+        0.9503015,
+        1.241264
+      ]
+    }
+  ],
+  "directional_support": [
+    {
+      "method": "exact",
+      "filter": 1,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "exact",
+      "filter": 5,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "exact",
+      "filter": 10,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "exact",
+      "filter": 20,
+      "timing_directional_criterion_both_builds": true,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": true,
+      "operational_acceptance": true
+    },
+    {
+      "method": "exact",
+      "filter": 50,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_standard",
+      "filter": 1,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_standard",
+      "filter": 5,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_standard",
+      "filter": 10,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_standard",
+      "filter": 20,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_standard",
+      "filter": 50,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_iterative",
+      "filter": 1,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_iterative",
+      "filter": 5,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_iterative",
+      "filter": 10,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_iterative",
+      "filter": 20,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    },
+    {
+      "method": "hnsw_iterative",
+      "filter": 50,
+      "timing_directional_criterion_both_builds": false,
+      "quality_preserved_both_builds": true,
+      "supported_without_quality_change": false,
+      "operational_acceptance": false
+    }
+  ],
+  "quality_all_12000_query_cells_stable": true,
+  "quality_all_6000_matched_queries_stable": true,
+  "query_times_seconds": {
+    "measured": 307.371833559,
+    "preparation": 50.091650744
+  },
+  "preparation_totals": [
+    {
+      "build": 1,
+      "arm": "A",
+      "phase": "disjoint_warmup",
+      "execution_count": 300,
+      "total_seconds": 3.225479648
+    },
+    {
+      "build": 1,
+      "arm": "B",
+      "phase": "disjoint_warmup",
+      "execution_count": 300,
+      "total_seconds": 2.061491071
+    },
+    {
+      "build": 1,
+      "arm": "B",
+      "phase": "measured_exposure",
+      "execution_count": 3000,
+      "total_seconds": 17.728688229
+    },
+    {
+      "build": 2,
+      "arm": "A",
+      "phase": "disjoint_warmup",
+      "execution_count": 300,
+      "total_seconds": 2.496997249
+    },
+    {
+      "build": 2,
+      "arm": "B",
+      "phase": "disjoint_warmup",
+      "execution_count": 300,
+      "total_seconds": 4.820696737
+    },
+    {
+      "build": 2,
+      "arm": "B",
+      "phase": "measured_exposure",
+      "execution_count": 3000,
+      "total_seconds": 19.75829781
+    }
+  ],
+  "resources": {
+    "snapshot_count": 390,
+    "memory_total_bytes": [
+      17179869184
+    ],
+    "memory_available_bytes_min_max": [
+      3869618176,
+      7536676864
+    ],
+    "disk_free_bytes_min_max": [
+      35336515584,
+      38705262592
+    ],
+    "process_max_rss_max": 474226688,
+    "logical_cpu_count": [
+      null
+    ],
+    "physical_cpu_count": [
+      4
+    ],
+    "client_machine": [
+      "x86_64"
+    ],
+    "caveat": "Process lifetime maximum RSS is runner only, not PostgreSQL or system total; snapshots do not identify swapping, physical disk I/O, or background process causes."
+  },
+  "relation_sizes_by_build": {
+    "1": [
+      {
+        "kind": "r",
+        "relation": "sift_exact",
+        "relation_bytes": 58720256,
+        "total_bytes": 62177280
+      },
+      {
+        "kind": "i",
+        "relation": "sift_exact_filter_bucket_idx",
+        "relation_bytes": 745472,
+        "total_bytes": 745472
+      },
+      {
+        "kind": "i",
+        "relation": "sift_exact_pkey",
+        "relation_bytes": 2662400,
+        "total_bytes": 2662400
+      },
+      {
+        "kind": "r",
+        "relation": "sift_hnsw",
+        "relation_bytes": 58515456,
+        "total_bytes": 144334848
+      },
+      {
+        "kind": "i",
+        "relation": "sift_hnsw_embedding_idx",
+        "relation_bytes": 83107840,
+        "total_bytes": 83107840
+      },
+      {
+        "kind": "i",
+        "relation": "sift_hnsw_pkey",
+        "relation_bytes": 2662400,
+        "total_bytes": 2662400
+      }
+    ],
+    "2": [
+      {
+        "kind": "r",
+        "relation": "sift_exact",
+        "relation_bytes": 58720256,
+        "total_bytes": 62177280
+      },
+      {
+        "kind": "i",
+        "relation": "sift_exact_filter_bucket_idx",
+        "relation_bytes": 745472,
+        "total_bytes": 745472
+      },
+      {
+        "kind": "i",
+        "relation": "sift_exact_pkey",
+        "relation_bytes": 2662400,
+        "total_bytes": 2662400
+      },
+      {
+        "kind": "r",
+        "relation": "sift_hnsw",
+        "relation_bytes": 58515456,
+        "total_bytes": 144375808
+      },
+      {
+        "kind": "i",
+        "relation": "sift_hnsw_embedding_idx",
+        "relation_bytes": 83148800,
+        "total_bytes": 83148800
+      },
+      {
+        "kind": "i",
+        "relation": "sift_hnsw_pkey",
+        "relation_bytes": 2662400,
+        "total_bytes": 2662400
+      }
+    ]
+  },
+  "phase_metrics": {
+    "1": {
+      "copy_exact_ns": 4157487217,
+      "copy_hnsw_from_exact_ns": 1918150950,
+      "exact_index_ns": 104163785,
+      "ground_truth_determinism_reexecution_ns": 11456987325,
+      "ground_truth_generation_ns": 11594048940,
+      "hnsw_build_ns": 65025736564,
+      "hnsw_build_settings": {
+        "maintenance_work_mem": "1GB",
+        "max_parallel_maintenance_workers": "0"
+      },
+      "independent_ground_truth_validation_ns": 1044439976,
+      "vacuum_analyze_checkpoint_ns": 982626969
+    },
+    "2": {
+      "copy_exact_ns": 5080887532,
+      "copy_hnsw_from_exact_ns": 1719880882,
+      "exact_index_ns": 86064860,
+      "ground_truth_determinism_reexecution_ns": 13876958595,
+      "ground_truth_generation_ns": 14159375668,
+      "hnsw_build_ns": 77515781330,
+      "hnsw_build_settings": {
+        "maintenance_work_mem": "1GB",
+        "max_parallel_maintenance_workers": "0"
+      },
+      "independent_ground_truth_validation_ns": 816010243,
+      "vacuum_analyze_checkpoint_ns": 2548163425
+    }
+  }
+}

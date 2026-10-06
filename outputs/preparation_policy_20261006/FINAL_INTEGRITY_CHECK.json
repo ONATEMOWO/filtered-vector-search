@@ -1,0 +1,26 @@
+{
+  "pilot": {
+    "payloads_verified": 5,
+    "manifest_sha256": "a5974acb019968e27331edcd29f87fc0a1540363fccaf48ea5ef5475beffa5fb",
+    "terminal_sha256": "303cd7c64d6a3114ddff8c450b898cf2946f536c60ec34bbd615a47e75354758"
+  },
+  "historical": {
+    "payloads_verified": 4,
+    "manifest_sha256": "f5097d60465bf98a3376e7a4d47a064466ab0b1b30af7bd1c2b300edbcd433d6",
+    "terminal_sha256": "9b3a898385249a65d8118df1625164e7ffcdb938dd5ad132c452aef509b05e85"
+  },
+  "raw": {
+    "payloads_verified": 511,
+    "manifest_sha256": "f1bc77f9da7e9f09876f5c386898635dc132901d4cb68733d5461d7899a0bb8c",
+    "terminal_sha256": "c2dc1eeeae7dc497109dfbf365cf289e0414e19be30dba4e11f3a942a9232e47"
+  },
+  "original_starting_evidence_files_unchanged": 322,
+  "independent_arithmetic_checker_sha256": "535158e79e81a1f4ab0a8b9652e6065d61e84300ce2a4649d93607799de1c508",
+  "final_unit_tests": {
+    "count": 213,
+    "seconds": 45.326,
+    "passed": true,
+    "evidence": "FINAL_TEST_RESULT.txt"
+  },
+  "passed": true
+}

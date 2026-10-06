@@ -14,10 +14,16 @@ standalone full 100,000-row rounds. These are single-scale observations, not
 a completed multi-scale study. See `outputs/assignment_evidence/` for the
 September checkpoint and `outputs/a5_review_20261006/` for its October audit.
 
-The next bounded milestone qualifies the latency-preparation policy at 100k.
-Its frozen design is `docs/PREPARATION_POLICY_PROTOCOL.md`; it does not authorize
-an automatic larger-scale campaign. The sections below headed Milestone 1
-or describing smoke commands retain that historical pipeline's semantics.
+The October 6 preparation-policy milestone is complete: two fresh 100k graphs,
+60,000 measured executions, independent verification, and descriptive analysis.
+Adding a measured-query preparation pass did not consistently resolve latency
+variation; only exact search at 20% met the prespecified two-build criterion.
+This is a measurement-qualification result, not final multi-scale findings.
+See [the factual handoff](outputs/preparation_policy_20261006/FACTUAL_HANDOFF.md),
+[all measured conditions](outputs/preparation_policy_20261006/pilot_analysis/ANALYSIS.md),
+and [the frozen design](docs/PREPARATION_POLICY_PROTOCOL.md).
+Larger scales remain paused. The sections below headed Milestone 1 or describing
+smoke commands retain that historical pipeline's semantics.
 
 ## What is included
 

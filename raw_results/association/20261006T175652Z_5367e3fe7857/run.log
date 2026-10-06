@@ -1,0 +1,36 @@
+2026-10-06T17:56:52.278485+00:00 Starting association stage: scale=100000, build=1, same-graph metadata modes
+2026-10-06T17:56:58.990855+00:00 Computing source-exact neighborhoods and prespecified association manipulation check
+2026-10-06T17:57:10.156834+00:00 Association manipulation check passed; physically loading vectors and both metadata columns
+2026-10-06T17:59:52.484518+00:00 legacy: verified buffer eviction, persistent sessions and actual prepared-plan audits
+2026-10-06T17:59:56.032545+00:00 legacy block01: exact, filter 5
+2026-10-06T18:00:00.682013+00:00 legacy block02: hnsw_iterative, filter 10
+2026-10-06T18:00:06.212323+00:00 legacy block03: hnsw_iterative, filter 1
+2026-10-06T18:00:17.585810+00:00 legacy block04: hnsw_standard, filter 1
+2026-10-06T18:00:18.972282+00:00 legacy block05: exact, filter 10
+2026-10-06T18:00:25.843119+00:00 legacy block06: hnsw_standard, filter 50
+2026-10-06T18:00:27.191937+00:00 legacy block07: hnsw_standard, filter 20
+2026-10-06T18:00:28.632029+00:00 legacy block08: hnsw_iterative, filter 50
+2026-10-06T18:00:30.020694+00:00 legacy block09: exact, filter 1
+2026-10-06T18:00:31.706144+00:00 legacy block10: hnsw_standard, filter 10
+2026-10-06T18:00:33.008813+00:00 legacy block11: hnsw_standard, filter 5
+2026-10-06T18:00:34.273787+00:00 legacy block12: exact, filter 20
+2026-10-06T18:00:45.907269+00:00 legacy block13: hnsw_iterative, filter 5
+2026-10-06T18:00:50.312177+00:00 legacy block14: hnsw_iterative, filter 20
+2026-10-06T18:00:52.109102+00:00 legacy block15: exact, filter 50
+2026-10-06T18:01:16.263947+00:00 radial: verified buffer eviction, persistent sessions and actual prepared-plan audits
+2026-10-06T18:01:17.425115+00:00 radial block01: exact, filter 5
+2026-10-06T18:01:24.036955+00:00 radial block02: hnsw_iterative, filter 10
+2026-10-06T18:02:02.108953+00:00 radial block03: hnsw_iterative, filter 1
+2026-10-06T18:02:45.009464+00:00 radial block04: hnsw_standard, filter 1
+2026-10-06T18:02:46.610394+00:00 radial block05: exact, filter 10
+2026-10-06T18:02:58.105454+00:00 radial block06: hnsw_standard, filter 50
+2026-10-06T18:02:59.760293+00:00 radial block07: hnsw_standard, filter 20
+2026-10-06T18:03:01.258712+00:00 radial block08: hnsw_iterative, filter 50
+2026-10-06T18:03:10.940842+00:00 radial block09: exact, filter 1
+2026-10-06T18:03:13.093793+00:00 radial block10: hnsw_standard, filter 10
+2026-10-06T18:03:14.580186+00:00 radial block11: hnsw_standard, filter 5
+2026-10-06T18:03:16.097924+00:00 radial block12: exact, filter 20
+2026-10-06T18:03:36.605180+00:00 radial block13: hnsw_iterative, filter 5
+2026-10-06T18:04:14.972225+00:00 radial block14: hnsw_iterative, filter 20
+2026-10-06T18:04:48.661785+00:00 radial block15: exact, filter 50
+2026-10-06T18:05:18.929147+00:00 Producer gates passed; independent offline verification required before next stage

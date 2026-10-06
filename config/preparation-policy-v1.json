@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "protocol_id": "preparation-policy-100k-v1",
+  "purpose": "matched operational preparation-policy qualification, not cache-cause identification",
+  "scale_rows": 100000,
+  "build_numbers": [
+    1,
+    2
+  ],
+  "arms_by_build": {
+    "1": [
+      "A",
+      "B"
+    ],
+    "2": [
+      "B",
+      "A"
+    ]
+  },
+  "methods": [
+    "exact",
+    "hnsw_standard",
+    "hnsw_iterative"
+  ],
+  "filter_thresholds": [
+    50,
+    20,
+    10,
+    5,
+    1
+  ],
+  "k": 10,
+  "measured_query_count": 200,
+  "disjoint_warmup_query_count": 20,
+  "measured_exposure_passes": {
+    "A": 0,
+    "B": 1
+  },
+  "repetitions": 5,
+  "ground_truth_queries_per_build": 200,
+  "independent_ground_truth_checks_per_build": 20,
+  "expected_measured_executions": 60000,
+  "expected_preparation_executions": 7200,
+  "expected_plan_audits": 60,
+  "reset_policy": "checkpoint_and_verified_shared_buffer_eviction_before_each_arm",
+  "os_cache_flushed": false,
+  "server_restart_required": false,
+  "plan_probe": "first_disjoint_warmup_query",
+  "block_order": "sha256-prep-block-v1-reversed-in-build2",
+  "query_order": "sha256-prep-query-v1-shared-across-method-filter-arm",
+  "source_protocol": "config/milestone2/protocol.json",
+  "exact_work_mem": "4MB",
+  "ann_work_mem": "64MB",
+  "shared_buffers": "128MB",
+  "engineering_drift_band": [
+    0.8,
+    1.2
+  ],
+  "drift_band_interpretation": "predeclared diagnostic tolerance, not proof of steady state",
+  "hypothesis_support": "B lowers both median absolute log2 first/later query ratio and later-pass median range in both builds, evaluated separately for each method/filter",
+  "max_scale_rows": 100000,
+  "stop_after_campaign": true
+}

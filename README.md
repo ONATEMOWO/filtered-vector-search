@@ -8,9 +8,16 @@ This undergraduate research project asks:
 
 Milestone 1 remains preserved as a verified synthetic smoke pipeline. Milestone
 2 adds a separately namespaced SIFT1M benchmark harness for realistic exact,
-standard HNSW, and strict-order iterative HNSW search. The currently authorized
-Milestone 2 work is limited to a 10,000-row integration preflight and a bounded
-100,000-row qualification run; the complete benchmark is deliberately disabled.
+standard HNSW, and strict-order iterative HNSW search. Milestone 2 completed a
+10,000-row integration preflight, a bounded 100,000-row qualification and two
+standalone full 100,000-row rounds. These are single-scale observations, not
+a completed multi-scale study. See `outputs/assignment_evidence/` for the
+September checkpoint and `outputs/a5_review_20261006/` for its October audit.
+
+The next bounded milestone qualifies the latency-preparation policy at 100k.
+Its frozen design is `docs/PREPARATION_POLICY_PROTOCOL.md`; it does not authorize
+an automatic larger-scale campaign. The sections below headed Milestone 1
+or describing smoke commands retain that historical pipeline's semantics.
 
 ## What is included
 

@@ -1,7 +1,7 @@
 .DS_Store
 .env
-.runtime/
-.venv-milestone2/
+.runtime
+.venv-milestone2
 __pycache__/
 *.py[cod]
 data/generated/*

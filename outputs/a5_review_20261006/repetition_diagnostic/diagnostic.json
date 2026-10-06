@@ -1,0 +1,1261 @@
+{
+  "formulas": {
+    "fraction": "number of queries with first_ns > later-four median_ns / 200",
+    "p95": "linear interpolation at (n-1)*0.95 across per-query medians",
+    "paired_ratio": "median_query(first_ns / median_query(repetitions_2_to_5_ns))"
+  },
+  "interpretation": "Offline descriptive sensitivity diagnostic, not a corrected benchmark. All five repetitions remain the declared primary measurement. Later-four results are post-hoc sensitivity only. No significance, cache causality, cold/warm state, or final research conclusion is established. The same 200 queries are reused; repetitions and conditions are not independent samples.",
+  "provenance": {
+    "generator_path": "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/analysis/audit_repetition_sensitivity.py",
+    "generator_sha256": "d27dcdabd356642c5a5606ff4492e790314c15ac412202a6f194effdfdd679d9",
+    "git_status_porcelain": [
+      "M raw_results/milestone_2/20260915T184137Z_bf300f7b1133/failure.json",
+      "?? analysis/audit_repetition_sensitivity.py",
+      "?? outputs/a5_review_20261006/",
+      "?? tests/milestone2/test_repetition_sensitivity.py"
+    ],
+    "input_checksums_verified_before_and_after": true,
+    "repository_head": "38baba3fbf4e84dfb83d0642fe7cc067fcb748f2"
+  },
+  "runs": [
+    {
+      "build_id": "20260929T171847Z_f9d4cdb50ba7-round-1-build-1",
+      "conditions": [
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 2.087578,
+            "p95_query_median_ms": 2.8366798499999994
+          },
+          "filter_threshold": 1,
+          "fraction_queries_first_slower_than_later_four_median": 0.495,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 2.10301575,
+            "p95_query_median_ms": 2.7038664749999994
+          },
+          "median_paired_first_over_later_four": 0.9905767291057751,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            2.059222,
+            1.9418865,
+            2.1965885,
+            2.082135,
+            2.12553
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 4.9122,
+            "p95_query_median_ms": 6.98645525
+          },
+          "filter_threshold": 5,
+          "fraction_queries_first_slower_than_later_four_median": 0.635,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 5.03267925,
+            "p95_query_median_ms": 6.7765382249999995
+          },
+          "median_paired_first_over_later_four": 1.117428636381847,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            5.725276,
+            5.602059,
+            5.423273,
+            4.555766,
+            4.3444995
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 7.6175875,
+            "p95_query_median_ms": 9.92538525
+          },
+          "filter_threshold": 10,
+          "fraction_queries_first_slower_than_later_four_median": 0.47,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 7.80691525,
+            "p95_query_median_ms": 9.682597874999999
+          },
+          "median_paired_first_over_later_four": 0.9634992541206036,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            7.1169375,
+            7.239313,
+            7.826936,
+            7.959612,
+            7.9043085
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 13.9212395,
+            "p95_query_median_ms": 17.2708252
+          },
+          "filter_threshold": 20,
+          "fraction_queries_first_slower_than_later_four_median": 0.37,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 14.395379,
+            "p95_query_median_ms": 17.215340799999996
+          },
+          "median_paired_first_over_later_four": 0.9430106673052638,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            13.2164815,
+            15.19621,
+            14.046736,
+            12.806771,
+            14.076798
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 26.5244755,
+            "p95_query_median_ms": 29.4862536
+          },
+          "filter_threshold": 50,
+          "fraction_queries_first_slower_than_later_four_median": 0.575,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 26.24981425,
+            "p95_query_median_ms": 29.368075774999998
+          },
+          "median_paired_first_over_later_four": 1.0372009926832562,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            27.022231,
+            24.9085005,
+            26.122934,
+            27.707679,
+            27.353273
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.3952465,
+            "p95_query_median_ms": 2.3673631999999993
+          },
+          "filter_threshold": 1,
+          "fraction_queries_first_slower_than_later_four_median": 1.0,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.256068,
+            "p95_query_median_ms": 1.9673466999999998
+          },
+          "median_paired_first_over_later_four": 6.78715279751673,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            8.552406,
+            1.336557,
+            1.1748925,
+            1.011473,
+            1.285488
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.753772,
+            "p95_query_median_ms": 2.3189086499999996
+          },
+          "filter_threshold": 5,
+          "fraction_queries_first_slower_than_later_four_median": 0.45,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.73423875,
+            "p95_query_median_ms": 2.6084315749999996
+          },
+          "median_paired_first_over_later_four": 0.9755144632174704,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.7134155,
+            1.7559275,
+            1.8180105,
+            1.7113415,
+            1.605599
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.379623,
+            "p95_query_median_ms": 1.9856479499999997
+          },
+          "filter_threshold": 10,
+          "fraction_queries_first_slower_than_later_four_median": 0.515,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.40296525,
+            "p95_query_median_ms": 1.9831384999999997
+          },
+          "median_paired_first_over_later_four": 1.0256032454691146,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.377547,
+            1.425828,
+            1.366475,
+            1.2760815,
+            1.375393
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.4654075,
+            "p95_query_median_ms": 2.4005241999999996
+          },
+          "filter_threshold": 20,
+          "fraction_queries_first_slower_than_later_four_median": 0.45,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.52691125,
+            "p95_query_median_ms": 2.4374294749999996
+          },
+          "median_paired_first_over_later_four": 0.9371310039360061,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.4295625,
+            1.356848,
+            1.392274,
+            1.594096,
+            1.7105465
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.900674,
+            "p95_query_median_ms": 3.404157649999999
+          },
+          "filter_threshold": 50,
+          "fraction_queries_first_slower_than_later_four_median": 0.995,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.7311615,
+            "p95_query_median_ms": 2.803833574999999
+          },
+          "median_paired_first_over_later_four": 10.876903879575362,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            17.9020685,
+            1.965548,
+            1.6210635,
+            1.6172265,
+            1.5722305
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 15.851636,
+            "p95_query_median_ms": 24.71843465
+          },
+          "filter_threshold": 1,
+          "fraction_queries_first_slower_than_later_four_median": 0.22,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 16.48041375,
+            "p95_query_median_ms": 25.491091974999993
+          },
+          "median_paired_first_over_later_four": 0.8391001067365417,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            14.007535,
+            13.559034,
+            14.6181325,
+            18.056732,
+            19.771332
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 4.5673445,
+            "p95_query_median_ms": 8.001911549999997
+          },
+          "filter_threshold": 5,
+          "fraction_queries_first_slower_than_later_four_median": 0.685,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 4.53030125,
+            "p95_query_median_ms": 7.9087171
+          },
+          "median_paired_first_over_later_four": 1.171903882913947,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            5.0976685,
+            4.8078025,
+            4.2913315,
+            4.5544735,
+            4.5136465
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 3.6389155,
+            "p95_query_median_ms": 6.8829504499999965
+          },
+          "filter_threshold": 10,
+          "fraction_queries_first_slower_than_later_four_median": 0.945,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 3.37901375,
+            "p95_query_median_ms": 5.9843864999999985
+          },
+          "median_paired_first_over_later_four": 2.6786120572800938,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            8.5796795,
+            4.0165145,
+            3.761935,
+            3.131828,
+            2.712438
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 2.1239355,
+            "p95_query_median_ms": 3.2852729999999997
+          },
+          "filter_threshold": 20,
+          "fraction_queries_first_slower_than_later_four_median": 0.52,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 2.1188095,
+            "p95_query_median_ms": 3.3809703499999997
+          },
+          "median_paired_first_over_later_four": 1.0150453519543219,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            2.148582,
+            2.1673705,
+            2.029851,
+            2.20453,
+            2.0342595
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.7209835,
+            "p95_query_median_ms": 2.599510899999998
+          },
+          "filter_threshold": 50,
+          "fraction_queries_first_slower_than_later_four_median": 0.46,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.77104975,
+            "p95_query_median_ms": 2.8387927499999988
+          },
+          "median_paired_first_over_later_four": 0.9643804776041585,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.670209,
+            1.6534845,
+            1.704477,
+            1.6326055,
+            1.8428715
+          ]
+        }
+      ],
+      "input_sha256": {
+        "COMPLETE.json": "abfe7e71ca20f5b34abf81c523ac43ebad28a45e2df555772d4394c2740df544",
+        "cache_reset.json": "ff14ffcd374642ab73e51c8a58562ea60db639407f2fb9a3dbc9d9e826151ba2",
+        "checksums.sha256": "68219d207b5df1ff0d548a2d336246e58f3d5cf9c2442faa49e35386d3e9484b",
+        "config.json": "f9d4cdb50ba73c42307325b2d59a5ea93078c7b15b65b3491e251d67d33ece19",
+        "database_evidence.json": "14fd74ed37f10c18a004502c0de689f5fdea2eb7042113d968eb1f52c42ff5f7",
+        "dataset_manifest.json": "26783ed9a2258ce4648ab2c169f47e61e67423e9afcbc4bcb2412e2cf18c3b3f",
+        "environment.json": "560675e7966a168f15e31ba72868e361ea0b922a1f6798ffa5b035450b4430ac",
+        "executions.jsonl": "36ced4063ac4158a1a7b775f0f3da911849ccc136bfe22b0e1d4395a3017aafb",
+        "filter_counts.json": "5e7d45b80e58bcf330a986ed3300f0e7820abfbce7e7491fc8af22b3f1ff30c7",
+        "ground_truth.jsonl": "f4956c8600ecef6f4d34e0c784b160430917cc6b3a5c31b4ca7c73e7e8763f10",
+        "ground_truth_reexecution.json": "16db11243501f0902ae5c19f3aeb9eef6ca6fc0361bd989996f344519421ed65",
+        "ground_truth_validation.json": "3bc8e7686a1dc33d9c93967af9902955185dedfb8bf3e1ec5ea70f369fa875e1",
+        "method_sessions.json": "e117c96a9d87daf70a0394e0d2eb49c85e7bc12f916eebc9f6122a4a67967a7f",
+        "phase_metrics.json": "38fb2ff567dca89fa8ddbcf517a4f743301e6205a5f546b6e2810c4c5a0cb4b9",
+        "plan_assertions.jsonl": "820bf247059e2f3cafacd7de1aa8721279fd3cb0d8568104ec8654d3351b5e3f",
+        "plans/0afbaa4bc897c503d4b6.json": "76d5489d3767334b6a432a098e62e47d6f7fe8212fed405073993792e6cf7c60",
+        "plans/0ffd6dd701bee50ad9bd.json": "46aa77d5bc30b252b0e3c889d8bfeca717de615e7ed7e43320bff03a74cda70b",
+        "plans/3a3ec4e5e54cff721a5d.json": "a5450851ac3409ad2ad1b8b5e4e452abbeb88540b4d7321c5c5d0ef2ea088d6d",
+        "plans/52a7ff640bced76a38ed.json": "e88863091793151de8aa68bb3db94f67bf65e99956a0b910b5798b95ad290921",
+        "plans/67d9009ea26bbe5648fa.json": "de710e328ccd8248fc74eef4ca34c68cffbdeff89620b12ad07d2b3be746e25d",
+        "plans/6ed05d2f6c030b8f11b8.json": "9aa9ee63c0a77228d8c445e798ea214c62cfa5c6b3b340f213290b48d78d2c63",
+        "plans/7117690d0770b05708a8.json": "f45bff65820508d63b4f05b87582f91f4c47ec1bff60487120cf2d12abcfd9ca",
+        "plans/8c484190ad43adab682c.json": "8967582a1a9c93db0d6ac6805857df0046e0f3fe5d539e8c61dbfeb839436cf8",
+        "plans/929cc54640b4b8c772bd.json": "487b4b365fe02ee97d34a8a91f4634ab1e784f21c68dd4c33144816d5a83534c",
+        "plans/9b6adee106175d8dbdec.json": "f37d8393349a60705e4e7ac1a168dadaef6f9f6204fa0a039ae7479ee302a5e2",
+        "plans/a3cac08ee4ae6e1a0151.json": "97a93045352790c6e0b4c6c8429d079df7c7184cf0160dc20d0699ff569df423",
+        "plans/b7d78c1b77a66cf8faba.json": "39c964c152d61afd62d083f9d8020850dc015ad14c21f6ebecc06ba9e0d343cd",
+        "plans/ced0686f9f89d84b1aef.json": "3f546fac3b4fb8de4dd25e387d7e883559b0e4ce51304d2d2c394ce5adbedab6",
+        "plans/ef78c7122c466ba14ecb.json": "fbc199f93e885dca550be6287369730f5ae048b3c80c4b2000c407d37f2778fd",
+        "plans/f9467c9dce4542f0dcfa.json": "10ea3615fde5b1bf62bf4dea0f02a5b90f991a4b3ce5d58ae41609e88156e8f3",
+        "postgres_settings.json": "9b4922df6775589bf98e9e2fa4d09b6e6ab77faf06dfe134c2837e075feff162",
+        "power_state.json": "90f58664a63ae6569cb4ea77b23f7bb687b3f6f63dd5e6d58234acc38493d18b",
+        "prepared_statements.json": "95b709c283056f61707851c966adcb51cc6089a9e2be6467b4f6c439398071fb",
+        "queries.json": "b51d840c6121854cba0c8b63902bcc35681370bdba10726ec6050da90be98f0e",
+        "relation_sizes.json": "c41359b81c609c59d83dd2f55ee2a66bc66d12cbcbbf233d9cfc650604d09cf3",
+        "resource_observations.json": "e7d5070c63310fa92f67bd3af24857819c988d9e8132b857ed9311aa554fa373",
+        "restart_before.json": "d2b616f3c6b4e1b7d617b84ba39a2c67f45627eb1c8d56766543f2e63e55f0ca",
+        "run.log": "d8dece7341df2f3ad8ac5dfa3f670e9ea1f6aa8c7ea5356f9c314e5b7a5a0e71",
+        "run_manifest.json": "7327f7504613cf970038f1caf365be86c93e1aafc69cf9e7eb0bd89d52851b98",
+        "scale_manifest.json": "2c525e17112ecc468163c4943380832e2aa3e71bdc1723fcf64be388746e39f7",
+        "schedule.json": "51913b6286abbfeaaed9ed5fd58a6a9edab66877289166faf136d14753bf4978",
+        "source_vector_samples.json": "92fe275b1f61b34fcab2842ea3c54c4c6181b8f98b161c187d9cd6c0b0636281",
+        "summary.json": "93daee5b20842f58281b3daf664e5369cee7fbc21bc95382318de6b28f1ab3a3",
+        "validation_report.json": "0681ac48ea7a2eeebf9ffdccc2ae23217908c421a309c0cb40afd5186955e1c1",
+        "warmups.jsonl": "c3659d2b1bd630a5a27fd50d6a5110e10b1731fa6926110b6887373f2534b0a6"
+      },
+      "measured_query_ids": [
+        1051,
+        3600,
+        5846,
+        8143,
+        5933,
+        1685,
+        8198,
+        3074,
+        8330,
+        5267,
+        7560,
+        839,
+        1167,
+        3994,
+        1166,
+        5753,
+        5341,
+        4042,
+        4050,
+        2004,
+        6146,
+        527,
+        5015,
+        19,
+        9725,
+        2459,
+        5074,
+        6190,
+        1202,
+        6869,
+        4485,
+        7887,
+        9951,
+        7370,
+        9906,
+        1810,
+        8929,
+        1812,
+        5619,
+        5776,
+        7681,
+        5863,
+        5284,
+        7911,
+        6780,
+        2980,
+        7414,
+        9788,
+        3291,
+        9110,
+        8170,
+        4227,
+        5870,
+        6648,
+        9886,
+        8943,
+        6608,
+        4499,
+        9703,
+        6129,
+        3528,
+        8438,
+        6353,
+        6158,
+        6670,
+        6671,
+        7361,
+        9727,
+        1628,
+        4451,
+        9695,
+        2008,
+        8457,
+        9002,
+        5923,
+        6919,
+        4098,
+        344,
+        8104,
+        8523,
+        8243,
+        8982,
+        4972,
+        1791,
+        7834,
+        3498,
+        2979,
+        2190,
+        8556,
+        8494,
+        3589,
+        7379,
+        1587,
+        8777,
+        6695,
+        4172,
+        2734,
+        8436,
+        8233,
+        7032,
+        6959,
+        4578,
+        2902,
+        1671,
+        5951,
+        5087,
+        9589,
+        1165,
+        9721,
+        7755,
+        273,
+        872,
+        6601,
+        8226,
+        4057,
+        5618,
+        6361,
+        5509,
+        4196,
+        6607,
+        5327,
+        9649,
+        4943,
+        2088,
+        6237,
+        5906,
+        8656,
+        7522,
+        246,
+        1015,
+        8447,
+        2990,
+        6239,
+        5938,
+        9893,
+        5593,
+        6532,
+        9740,
+        2983,
+        7101,
+        6421,
+        2164,
+        7217,
+        456,
+        6915,
+        3236,
+        2152,
+        8034,
+        9565,
+        780,
+        5612,
+        347,
+        7788,
+        3956,
+        6830,
+        2610,
+        3867,
+        6218,
+        5946,
+        5772,
+        108,
+        6908,
+        4579,
+        5472,
+        8293,
+        6471,
+        3909,
+        2131,
+        5894,
+        8571,
+        9057,
+        8186,
+        1340,
+        4239,
+        3073,
+        7992,
+        2679,
+        9584,
+        2114,
+        3949,
+        3178,
+        2329,
+        5157,
+        262,
+        8091,
+        982,
+        6467,
+        3621,
+        8977,
+        2949,
+        1045,
+        2650,
+        4861,
+        4770,
+        8520,
+        2795,
+        1482,
+        3012,
+        9019,
+        4581
+      ],
+      "round": 1,
+      "run_id": "20260929T171847Z_f9d4cdb50ba7",
+      "run_path": "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/raw_results/milestone_2/20260929T171847Z_f9d4cdb50ba7",
+      "source_commit": "3692827fda9989f8af2e598d170a16d0c34a5a77",
+      "timed_executions": 15000
+    },
+    {
+      "build_id": "20260929T172504Z_fa89b474a1c4-round-2-build-1",
+      "conditions": [
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 2.4395865,
+            "p95_query_median_ms": 3.2862526499999993
+          },
+          "filter_threshold": 1,
+          "fraction_queries_first_slower_than_later_four_median": 0.59,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 2.41388,
+            "p95_query_median_ms": 3.477614024999999
+          },
+          "median_paired_first_over_later_four": 1.0562952253796092,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            2.487078,
+            2.401253,
+            2.4621125,
+            2.3835485,
+            2.2136025
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 5.716125,
+            "p95_query_median_ms": 7.454389399999998
+          },
+          "filter_threshold": 5,
+          "fraction_queries_first_slower_than_later_four_median": 0.455,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 5.84453925,
+            "p95_query_median_ms": 7.624636324999998
+          },
+          "median_paired_first_over_later_four": 0.9534717715196874,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            5.5368135,
+            4.879449,
+            5.8525015,
+            6.8543335,
+            5.687813
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 8.554648,
+            "p95_query_median_ms": 10.977883749999998
+          },
+          "filter_threshold": 10,
+          "fraction_queries_first_slower_than_later_four_median": 0.69,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 8.5076265,
+            "p95_query_median_ms": 10.870920374999999
+          },
+          "median_paired_first_over_later_four": 1.1151229995990881,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            9.5705625,
+            8.3448655,
+            8.1411755,
+            8.399763,
+            8.3755
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 14.577833,
+            "p95_query_median_ms": 18.267332349999997
+          },
+          "filter_threshold": 20,
+          "fraction_queries_first_slower_than_later_four_median": 0.435,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 14.6629425,
+            "p95_query_median_ms": 19.539692999999996
+          },
+          "median_paired_first_over_later_four": 0.9540569858856541,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            13.6945,
+            14.767951,
+            15.2826245,
+            12.63443,
+            16.1040935
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 27.6226365,
+            "p95_query_median_ms": 33.455444199999995
+          },
+          "filter_threshold": 50,
+          "fraction_queries_first_slower_than_later_four_median": 0.195,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 29.356615,
+            "p95_query_median_ms": 40.26792544999999
+          },
+          "median_paired_first_over_later_four": 0.848709453993624,
+          "method": "exact",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            25.396944,
+            24.6828135,
+            32.1442005,
+            34.1343575,
+            28.152796
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.853987,
+            "p95_query_median_ms": 3.7316194499999997
+          },
+          "filter_threshold": 1,
+          "fraction_queries_first_slower_than_later_four_median": 0.995,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.70583625,
+            "p95_query_median_ms": 2.9038011249999993
+          },
+          "median_paired_first_over_later_four": 5.929438887040969,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            10.1354505,
+            1.81459,
+            1.7700885,
+            1.567238,
+            1.479298
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.3701765,
+            "p95_query_median_ms": 1.85671065
+          },
+          "filter_threshold": 5,
+          "fraction_queries_first_slower_than_later_four_median": 0.495,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.362658,
+            "p95_query_median_ms": 1.9517674749999991
+          },
+          "median_paired_first_over_later_four": 0.9932836447276923,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.390821,
+            1.3581945,
+            1.342102,
+            1.39179,
+            1.323684
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.352339,
+            "p95_query_median_ms": 1.8343374
+          },
+          "filter_threshold": 10,
+          "fraction_queries_first_slower_than_later_four_median": 0.57,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.345737,
+            "p95_query_median_ms": 1.8280386499999999
+          },
+          "median_paired_first_over_later_four": 1.0373234287855326,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.4278225,
+            1.3503975,
+            1.360673,
+            1.3832355,
+            1.2581475
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.7771715,
+            "p95_query_median_ms": 2.3556499
+          },
+          "filter_threshold": 20,
+          "fraction_queries_first_slower_than_later_four_median": 0.435,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.80981225,
+            "p95_query_median_ms": 2.499498149999998
+          },
+          "median_paired_first_over_later_four": 0.9703329894381781,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.6482795,
+            1.8170535,
+            1.747246,
+            1.7488285,
+            1.769416
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.405782,
+            "p95_query_median_ms": 2.6639143499999975
+          },
+          "filter_threshold": 50,
+          "fraction_queries_first_slower_than_later_four_median": 0.885,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.305981,
+            "p95_query_median_ms": 2.416829125
+          },
+          "median_paired_first_over_later_four": 1.8691348912354848,
+          "method": "hnsw_standard",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            2.444445,
+            1.342754,
+            1.251836,
+            1.2297415,
+            1.203888
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 15.580512,
+            "p95_query_median_ms": 25.78354225
+          },
+          "filter_threshold": 1,
+          "fraction_queries_first_slower_than_later_four_median": 0.515,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 15.421592,
+            "p95_query_median_ms": 25.409804674999997
+          },
+          "median_paired_first_over_later_four": 1.0297549919026798,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            16.007221,
+            15.0032355,
+            17.900851,
+            15.3635895,
+            15.5878775
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 4.4164755,
+            "p95_query_median_ms": 7.448985499999999
+          },
+          "filter_threshold": 5,
+          "fraction_queries_first_slower_than_later_four_median": 0.4,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 4.516137,
+            "p95_query_median_ms": 7.638803024999999
+          },
+          "median_paired_first_over_later_four": 0.9341792290007223,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            4.388714,
+            4.52334,
+            4.603692,
+            4.816973,
+            4.3798895
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 3.2194705,
+            "p95_query_median_ms": 4.911744149999996
+          },
+          "filter_threshold": 10,
+          "fraction_queries_first_slower_than_later_four_median": 0.705,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 3.15285825,
+            "p95_query_median_ms": 4.745316574999996
+          },
+          "median_paired_first_over_later_four": 1.2396721843347165,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            3.830603,
+            3.309183,
+            3.2801045,
+            3.0763355,
+            2.712601
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 2.0634495,
+            "p95_query_median_ms": 2.884032649999999
+          },
+          "filter_threshold": 20,
+          "fraction_queries_first_slower_than_later_four_median": 0.405,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 2.086745,
+            "p95_query_median_ms": 3.07653625
+          },
+          "median_paired_first_over_later_four": 0.9411441357414406,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.988484,
+            2.0026045,
+            2.022958,
+            2.0123825,
+            2.189309
+          ]
+        },
+        {
+          "all_five_declared": {
+            "median_query_median_ms": 1.351349,
+            "p95_query_median_ms": 2.00452395
+          },
+          "filter_threshold": 50,
+          "fraction_queries_first_slower_than_later_four_median": 0.56,
+          "later_four_sensitivity_only": {
+            "median_query_median_ms": 1.358194,
+            "p95_query_median_ms": 1.955583874999999
+          },
+          "median_paired_first_over_later_four": 1.0335475725722747,
+          "method": "hnsw_iterative",
+          "ordered_results_changed_queries": 0,
+          "ordered_results_identical_queries": 200,
+          "query_count": 200,
+          "repetition_median_ms": [
+            1.4177125,
+            1.4098795,
+            1.37971,
+            1.216144,
+            1.361692
+          ]
+        }
+      ],
+      "input_sha256": {
+        "COMPLETE.json": "76cbbfc5cad4d433253cdcea4d88b0d40ea55b145919a04a403585121850a650",
+        "cache_reset.json": "9547e7cc704b147c1ccb188d4fb56af1f444aec6fd3239aa0580e47f2bf5ec30",
+        "checksums.sha256": "2bae00f1c116f94090235d074daf23f8218b12fcdfcd9defdb3a2aefccc55093",
+        "config.json": "fa89b474a1c4e4df3997b75436ea9c1ca6991b1ae7e3bf1fa2db4b3c58c3f2d4",
+        "database_evidence.json": "10ecd9802a604e526553a317c9e1d80b6226324a93f4c484f8e80000af61af16",
+        "dataset_manifest.json": "0d7252b814cfb5f47ad02ad9ce908e109dfc47a067dc0b19c35aef71808ee45b",
+        "environment.json": "2259e9991500ed6a31f0882323dd5053eff59d028caef11da3c37fc727ee97dc",
+        "executions.jsonl": "ff59757df95cb01f23986ce2f407fcb1557fb7ca60cf6d6969fd65c928db5cae",
+        "filter_counts.json": "5e7d45b80e58bcf330a986ed3300f0e7820abfbce7e7491fc8af22b3f1ff30c7",
+        "ground_truth.jsonl": "6ff349100611147771c4f46681eaf6fc78cd646e0d766cd092f675d1f74c78bd",
+        "ground_truth_reexecution.json": "ff1ea9655541fe79f2f45e6ad4116d718895485c571381003bb5eb575f8d0ed3",
+        "ground_truth_validation.json": "3bc8e7686a1dc33d9c93967af9902955185dedfb8bf3e1ec5ea70f369fa875e1",
+        "method_sessions.json": "960e2700e4e018efa08d774e6d8f57579dd98e537efaa08faa40927546af4d39",
+        "phase_metrics.json": "8fd5508246ba1c4a7a32397a57cabca2247e7fbfdb8b8eff8a724b954e8b8ece",
+        "plan_assertions.jsonl": "e24ed10916443a123af3ae66eeee2e1f7fcb39365a411198aedec141f0914484",
+        "plans/0afbaa4bc897c503d4b6.json": "ec8e74f195df5407dd58385d09de1b0e0cf7ea363d0c6bbe592815a37026a235",
+        "plans/0ffd6dd701bee50ad9bd.json": "cba0dda43cf1e3d0cb335b2a5f7bf1ef7aa1ab881787ecc3523fb7b95a470800",
+        "plans/3a3ec4e5e54cff721a5d.json": "81e0db2d5ee30085a947726e06895441713f3c800ae2b5fcb92fefefd4000816",
+        "plans/52a7ff640bced76a38ed.json": "6fb3c1f5fcf3fd63b0eefb0142b9b0e1da6de7450b5841d79219cb246e796821",
+        "plans/67d9009ea26bbe5648fa.json": "c46bf894654ef561bdccd4ffffe15ba009e4f964619fceb5dc4c88e1751b889c",
+        "plans/6ed05d2f6c030b8f11b8.json": "6c45c462b6ae1b5559b4875b2319a8bd0fc9ecfeaac3c2e9927521ffd5eb83bf",
+        "plans/7117690d0770b05708a8.json": "125359e2a149de98d1d98834289547ab407a8aeef68e8956d4b3b61919088940",
+        "plans/8c484190ad43adab682c.json": "2b61612865ccb456ef5fba6a8c6abe84e0ceb21c55df52d08ff1e7f16df4687e",
+        "plans/929cc54640b4b8c772bd.json": "2998fa206268852d2414c443455d84ba885f90eb966cf150759a7c4a9cdcfa49",
+        "plans/9b6adee106175d8dbdec.json": "70a2e2f8ee2f2593702b6c2618de3406112192b793d0d7b6f1513f575ebd16a2",
+        "plans/a3cac08ee4ae6e1a0151.json": "bca0211846be2100b99ac3ae620375c3e4586310814dd15bcc91b6fd384168f7",
+        "plans/b7d78c1b77a66cf8faba.json": "01d77863d906c8b24a4bc1740cac614e79a078366a40d5e5a4b3134f24da7391",
+        "plans/ced0686f9f89d84b1aef.json": "86795a1079f3d05e54d7e2f55718b985dcb94106b0f767d54ea11e6efbc0862a",
+        "plans/ef78c7122c466ba14ecb.json": "8e71d10cf2d278af9d08c6668fb384843a158331ea317d38360166b5efb467b7",
+        "plans/f9467c9dce4542f0dcfa.json": "e8c8361d4e19e45ebd5b49ecd302d89ee2a2519c04d939c481a2fc95cad4ba53",
+        "postgres_settings.json": "019e5a58868863c656b68a8d61f35eebce0890fd6804aeb9eef117cb68151108",
+        "power_state.json": "90f58664a63ae6569cb4ea77b23f7bb687b3f6f63dd5e6d58234acc38493d18b",
+        "prepared_statements.json": "95b709c283056f61707851c966adcb51cc6089a9e2be6467b4f6c439398071fb",
+        "queries.json": "b51d840c6121854cba0c8b63902bcc35681370bdba10726ec6050da90be98f0e",
+        "relation_sizes.json": "c172eecb4f027de048759975354d1f9b92d4f96f0d89ad784420c109da77947f",
+        "resource_observations.json": "9f0164ec6e811cb47635fdd91b1b1c52f07264e85d2cce7c4eb15283666c2865",
+        "restart_before.json": "c496fdc6957cbbd4a66dc50c9bf549b4c15b2b774d56769fd9d239ba0b90ed72",
+        "run.log": "d2b2ea6bac01c22fd5f9d9c80ea86abf1236d98c1d2659fa5dca49d21feb53e8",
+        "run_manifest.json": "7d9d77933fad7851ae33ccc777882bba484f71573ce7912a4861b340ca15e1f6",
+        "scale_manifest.json": "2c525e17112ecc468163c4943380832e2aa3e71bdc1723fcf64be388746e39f7",
+        "schedule.json": "30466b673e1d192a09a77843fa93266e1588ee869cccd3efabf7b84d92796706",
+        "source_vector_samples.json": "92fe275b1f61b34fcab2842ea3c54c4c6181b8f98b161c187d9cd6c0b0636281",
+        "summary.json": "1603840d15096b53d48e946e900fe49be4c5d2c0f934dc2896cc7261f6b0ba23",
+        "validation_report.json": "f93e5dd81ebb6fa5fc5a96d10ee5349ba3378c3c9cae5d3446410fa4459b6e53",
+        "warmups.jsonl": "35172833be93001167c81a212c2973fbea0391ce522144e886c9a2d1eaddc9de"
+      },
+      "measured_query_ids": [
+        1051,
+        3600,
+        5846,
+        8143,
+        5933,
+        1685,
+        8198,
+        3074,
+        8330,
+        5267,
+        7560,
+        839,
+        1167,
+        3994,
+        1166,
+        5753,
+        5341,
+        4042,
+        4050,
+        2004,
+        6146,
+        527,
+        5015,
+        19,
+        9725,
+        2459,
+        5074,
+        6190,
+        1202,
+        6869,
+        4485,
+        7887,
+        9951,
+        7370,
+        9906,
+        1810,
+        8929,
+        1812,
+        5619,
+        5776,
+        7681,
+        5863,
+        5284,
+        7911,
+        6780,
+        2980,
+        7414,
+        9788,
+        3291,
+        9110,
+        8170,
+        4227,
+        5870,
+        6648,
+        9886,
+        8943,
+        6608,
+        4499,
+        9703,
+        6129,
+        3528,
+        8438,
+        6353,
+        6158,
+        6670,
+        6671,
+        7361,
+        9727,
+        1628,
+        4451,
+        9695,
+        2008,
+        8457,
+        9002,
+        5923,
+        6919,
+        4098,
+        344,
+        8104,
+        8523,
+        8243,
+        8982,
+        4972,
+        1791,
+        7834,
+        3498,
+        2979,
+        2190,
+        8556,
+        8494,
+        3589,
+        7379,
+        1587,
+        8777,
+        6695,
+        4172,
+        2734,
+        8436,
+        8233,
+        7032,
+        6959,
+        4578,
+        2902,
+        1671,
+        5951,
+        5087,
+        9589,
+        1165,
+        9721,
+        7755,
+        273,
+        872,
+        6601,
+        8226,
+        4057,
+        5618,
+        6361,
+        5509,
+        4196,
+        6607,
+        5327,
+        9649,
+        4943,
+        2088,
+        6237,
+        5906,
+        8656,
+        7522,
+        246,
+        1015,
+        8447,
+        2990,
+        6239,
+        5938,
+        9893,
+        5593,
+        6532,
+        9740,
+        2983,
+        7101,
+        6421,
+        2164,
+        7217,
+        456,
+        6915,
+        3236,
+        2152,
+        8034,
+        9565,
+        780,
+        5612,
+        347,
+        7788,
+        3956,
+        6830,
+        2610,
+        3867,
+        6218,
+        5946,
+        5772,
+        108,
+        6908,
+        4579,
+        5472,
+        8293,
+        6471,
+        3909,
+        2131,
+        5894,
+        8571,
+        9057,
+        8186,
+        1340,
+        4239,
+        3073,
+        7992,
+        2679,
+        9584,
+        2114,
+        3949,
+        3178,
+        2329,
+        5157,
+        262,
+        8091,
+        982,
+        6467,
+        3621,
+        8977,
+        2949,
+        1045,
+        2650,
+        4861,
+        4770,
+        8520,
+        2795,
+        1482,
+        3012,
+        9019,
+        4581
+      ],
+      "round": 2,
+      "run_id": "20260929T172504Z_fa89b474a1c4",
+      "run_path": "/Users/temz/Documents/Codex/2026-09-15/i-am-beginning-an-undergraduate-database/filtered-vector-search/raw_results/milestone_2/20260929T172504Z_fa89b474a1c4",
+      "source_commit": "e7952e5c1d8b22f5565945a24ef9259411d8f796",
+      "timed_executions": 15000
+    }
+  ],
+  "schema_version": 1
+}
